@@ -5,25 +5,25 @@
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
 import sys
-sys.path.append("./api")
-sys.path.append("./modules_lib/")
-from adra.adra_api_serial import AdraApiSerial
-from common import print_msg
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+from utapi.adra.adra_api_serial import AdraApiSerial
+from utapi.common import print_msg
 
 
 def main():
     adra = AdraApiSerial("/dev/ttyUSB0", 921600)
     adra.connect_to_id(1)
-    ret, value = adra.get_uuid()
-    print("[%d]get_uuid: %d, value = " % (adra.virid, ret))
-    print_msg.nhex("    ", value, 12)
-    ret, value = adra.get_sw_version()
-    print("[%d]get_sw_version: %d, value = %s" % (adra.virid, ret, ''.join(chr(i) for i in value)))
-    ret, type_pcb, type_mech, type_argc, type_ctrl, type_intf = adra.get_hw_version()
-    print("[%d]get_hw_version: %d, type_pcb:%d type_mech:%d type_argc:%d type_ctrl:%d type_intf:%d" %
-          (adra.virid, ret, type_pcb, type_mech, type_argc, type_ctrl, type_intf))
-    ret, value = adra.get_multi_version()
-    print("[%d]get_multi_version: %d, value = %d" % (adra.virid, ret, value))
+
+    ret, uuid = adra.get_uuid()
+    print("[%d]get_uuid: %d, uuid = %s" % (adra.virid, ret, uuid))
+    ret, version = adra.get_sw_version()
+    print("[%d]get_sw_version: %d, version = %s" % (adra.virid, ret, version))
+    ret, version = adra.get_hw_version()
+    print("[%d]get_hw_version: %d, version = %s" % (adra.virid, ret, version))
+    ret, version = adra.get_multi_version()
+    print("[%d]get_multi_version: %d, version = %s" % (adra.virid, ret, version))
     ret, value = adra.get_mech_ratio()
     print("[%d]get_mech_ratio: %d, value = %d" % (adra.virid, ret, value))
     print(" ")
@@ -38,8 +38,6 @@ def main():
     print("[%d]get_volt_limit: %d, value = %d %d" % (adra.virid, ret, min, max))
     ret, max = adra.get_curr_limit()
     print("[%d]get_curr_limit: %d, value = %f" % (adra.virid, ret, max))
-    ret, value = adra.get_brake_pwm()
-    print("[%d]get_brake_pwm : %d, value = %d" % (adra.virid, ret, value))
     print(" ")
 
     ret, value = adra.get_motion_mode()

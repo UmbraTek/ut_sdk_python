@@ -9,7 +9,7 @@ import time
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from utapi.adra.adra_api_serial import AdraApiSerial
+from utapi.flxie.flxie2_api_serial import FlxiE2ApiSerial
 
 
 def check_ret(ret, fun):
@@ -20,14 +20,14 @@ def check_ret(ret, fun):
 
 
 def main():
-    adra = AdraApiSerial("/dev/ttyUSB0", 921600)  # instantiate the adra executor api class
-    adra.connect_to_id(1)  # The ID of the connected target actuator, where the ID is 1
+    flxi = FlxiE2ApiSerial("/dev/ttyUSB0", 921600)  # instantiate the flxi executor api class
+    flxi.connect_to_id(101)  # The ID of the connected target actuator, where the ID is 1
 
-    ret = adra.set_motion_mode(3)  # Set actuator motion mode 3: current mode
+    ret = flxi.set_motion_mode(3)  # Set actuator motion mode 3: current mode
     check_ret(ret, "set_motion_mode")
-    ret = adra.set_motion_enable(1)  # Enable actuator
+    ret = flxi.set_motion_enable(1)  # Enable actuator
     check_ret(ret, "set_motion_enable")
-    ret = adra.set_tau_target(0.8)  # Set actuator motion current 0.8A
+    ret = flxi.set_tau_target(0.8)  # Set actuator motion current 0.8A
     check_ret(ret, "set_tau_target")
 
     while 1:
