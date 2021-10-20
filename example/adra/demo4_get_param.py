@@ -7,7 +7,7 @@
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from utapi.adra.adra_api_serial import AdraApiSerial
 from utapi.common import print_msg
 
@@ -114,5 +114,5 @@ def main():
     print("[%d]get_tau_smooth_cyc: %d, value = %f" % (adra.virid, ret, value))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

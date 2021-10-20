@@ -30,7 +30,7 @@ class UtraReportStatus10Hz(ArmReportStatus):
 
 
 class UtraReportStatus100Hz(ArmReportStatus):
-    def __init__(self, ip):
+    def __init__(self, ip, irq_fun=0):
         """This class will create a new thread to connect to ubot and receive the status of ubot at a frequency of 100HZ
         The status is as follows:
             see the UtraReportStatus10HZ
@@ -38,4 +38,4 @@ class UtraReportStatus100Hz(ArmReportStatus):
         Args:
             ip (String): IP address of UTRA robotic arm
         """
-        ArmReportStatus.__init__(self, ip, 30002)
+        ArmReportStatus.__init__(self, ip, 30002, irq_fun)

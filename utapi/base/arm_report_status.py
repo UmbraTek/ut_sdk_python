@@ -12,10 +12,12 @@ import logging
 
 
 class ArmReportStatus(threading.Thread):
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, irq_fun=0):
         self.__is_err = 0
         self.__rxcnt = 0
         self.__is_update = 0
+        self.frame_len = 0
+        self.irq_fun = irq_fun
 
         self.axis = 0
         self.motion_status = 0
@@ -33,7 +35,7 @@ class ArmReportStatus(threading.Thread):
         if self.__socekt_fp.is_error() != 0:
             logging.error("[UbotRStat] Error: SocketTcp failed, ip: %s, port: %d" % (ip, port))
             return -1
-        logging.info("[UbotRStat] Tcp Report Status connection successful")
+        print("[UbotRStat] Tcp Report Status connection successful")
 
         threading.Thread.__init__(self)
         self.daemon = True
@@ -43,15 +45,32 @@ class ArmReportStatus(threading.Thread):
 
         while self.__is_err == 0:
             rx_data = self.__socekt_fp.read()
-            if rx_data == -1 or len(rx_data) <= 5:
+            if rx_data == -1 or len(rx_data) <= 41:
                 continue
 
-            self.__rxcnt += 1
-            self.flush_data(rx_data)
+            if self.axis == 0:
+                if len(rx_data) == (41 + 3 * 8):
+                    self.axis = 3
+                    self.frame_len = 17 + self.axis * 4 + 6 * 4 + self.axis * 4
+                if len(rx_data) == (41 + 4 * 8):
+                    self.axis = 4
+                    self.frame_len = 17 + self.axis * 4 + 6 * 4 + self.axis * 4
+                if len(rx_data) == (41 + 5 * 8):
+                    self.axis = 5
+                    self.frame_len = 17 + self.axis * 4 + 6 * 4 + self.axis * 4
+                if len(rx_data) == (41 + 6 * 8):
+                    self.axis = 6
+                    self.frame_len = 17 + self.axis * 4 + 6 * 4 + self.axis * 4
+                if len(rx_data) == (41 + 7 * 8):
+                    self.axis = 7
+                    self.frame_len = 17 + self.axis * 4 + 6 * 4 + self.axis * 4
+            if self.axis > 0:
+                self.__rxcnt += 1
+                self.flush_data(rx_data)
 
         if self.__socekt_fp:
             self.__socekt_fp.close()
-            logging.info('ubot report status close')
+            print("ubot report status close")
 
     def close(self):
         self.__is_err = -1
@@ -60,16 +79,20 @@ class ArmReportStatus(threading.Thread):
         return self.__is_err
 
     def flush_data(self, rx_data):
-        if len(rx_data) % 89 != 0:
-            logging.info("[UbotRStat] Error: rx_data len = %d" % len(rx_data))
+        if len(rx_data) % self.frame_len != 0:
+            print("[UbotRStat] Error: rx_data len = %d" % len(rx_data))
             self.__is_err = 1
             return
 
-        k = (int)(len(rx_data) / 89) - 1
-        k *= 89
+        k = (int)(len(rx_data) / self.frame_len) - 1
+        k *= self.frame_len
 
-        temp1 = struct.unpack("<HBBBIIBBH", rx_data[k:k + 17])
-        self.axis = temp1[1]
+        temp1 = struct.unpack("<HBBBIIBBH", rx_data[k : k + 17])
+        axis = temp1[1]
+        if self.axis != axis:
+            print("[UbotRStat] Error: axis = %d %d" % (axis, self.axis))
+            self.__is_err = 1
+            return
         self.motion_status = temp1[2]
         self.motion_mode = temp1[3]
         self.mt_brake = temp1[4]
@@ -81,10 +104,12 @@ class ArmReportStatus(threading.Thread):
             j1 = k + 17 + i * 4
             j2 = j1 + self.axis * 4
             j3 = j2 + self.axis * 4
-            self.joint[i] = struct.unpack("<f", rx_data[j1:j1 + 4])
-            self.pose[i] = struct.unpack("<f", rx_data[j2:j2 + 4])
-            self.tau[i] = struct.unpack("<f", rx_data[j3:j3 + 4])
+            self.joint[i] = struct.unpack("<f", rx_data[j1 : j1 + 4])
+            self.pose[i] = struct.unpack("<f", rx_data[j2 : j2 + 4])
+            self.tau[i] = struct.unpack("<f", rx_data[j3 : j3 + 4])
         self.__is_update = 1
+        if self.irq_fun != 0:
+            self.irq_fun.irq_run(self)
 
     def is_update(self):
         """Query whether the automatically reported data has been updated
@@ -97,8 +122,7 @@ class ArmReportStatus(threading.Thread):
         return temp
 
     def print_data(self):
-        """Print the reported data currently obtained
-        """
+        """Print the reported data currently obtained"""
         print("rxcnt    = %d" % self.__rxcnt)
         print("axis     = %d" % self.axis)
         print("status   = %d" % self.motion_status)

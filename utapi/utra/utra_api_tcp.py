@@ -17,7 +17,7 @@ class UtraApiTcp(_ArmApiBase):
         Args:
             ip (string): IP address of UTRA robotic arm
         """
-        self.DB_FLG = '[UbotApiTc] '
+        self.DB_FLG = "[UbotApiTc] "
         self.socket_fp = SocketTcp(ip, 502)
         if self.socket_fp.is_error() != 0:
             logging.error(self.DB_FLG + "Error: SocketTcp")

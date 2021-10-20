@@ -12,8 +12,7 @@ class AdraApiBase(_ServoApiBase):
         _ServoApiBase.__init__(self, socket_fp, bus_client, tx_data)
 
     def close(self):
-        """Close socket
-        """
+        """Close socket"""
         self._close()
 
     def connect_to_id(self, id, virtual_id=0):
@@ -25,9 +24,9 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._connect_to_id(id, virtual_id)
 
-############################################################
-#                       Basic Api
-############################################################
+    ############################################################
+    #                       Basic Api
+    ############################################################
 
     def get_uuid(self):
         """Get the uuid
@@ -144,9 +143,9 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._saved_parm()
 
-############################################################
-#                       Ectension Api
-############################################################
+    ############################################################
+    #                       Ectension Api
+    ############################################################
 
     def get_elec_ratio(self):
         """Get electronic gear ratio
@@ -199,8 +198,8 @@ class AdraApiBase(_ServoApiBase):
         return self._get_temp_limit()
 
     def set_temp_limit(self, min, max):
-        """Set the temperature limit threshold, 
-        the minimum alarm threshold range [-20, 90], 
+        """Set the temperature limit threshold,
+        the minimum alarm threshold range [-20, 90],
         the maximum alarm threshold range [-20, 90], in degrees Celsius
 
         Args:
@@ -223,8 +222,8 @@ class AdraApiBase(_ServoApiBase):
         return self._get_volt_limit()
 
     def set_volt_limit(self, min, max):
-        """Set the voltage limit threshold, 
-        the minimum alarm threshold range [18, 55], 
+        """Set the voltage limit threshold,
+        the minimum alarm threshold range [18, 55],
         the maximum alarm threshold range [18, 55], unit volt
 
         Args:
@@ -256,9 +255,10 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._set_curr_limit(value)
 
-############################################################
-#                       Control Api
-############################################################
+
+    ############################################################
+    #                       Control Api
+    ############################################################
 
     def get_motion_mode(self):
         """Get the operating mode
@@ -319,7 +319,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_brake_enable()
 
     def set_brake_enable(self, enable):
-        """Set the brake enable state, enable the brake separately, and operate this register only when the motion is disabled, 
+        """Set the brake enable state, enable the brake separately, and operate this register only when the motion is disabled,
         because the brake is automatically opened in the motion enable state.
 
         Args:
@@ -384,9 +384,9 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._get_error_code()
 
-############################################################
-#                       Position Api
-############################################################
+    ############################################################
+    #                       Position Api
+    ############################################################
 
     def get_pos_target(self):
         """Get target position
@@ -427,7 +427,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_pos_limit_min()
 
     def set_pos_limit_min(self, pos):
-        """Set the minimum limit threshold of the position in position mode, 
+        """Set the minimum limit threshold of the position in position mode,
         other modes such as speed mode and current mode do not work
 
         Args:
@@ -448,7 +448,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_pos_limit_max()
 
     def set_pos_limit_max(self, pos):
-        """Set the maximum limit threshold of the position in position mode, 
+        """Set the maximum limit threshold of the position in position mode,
         other modes such as speed mode and current mode do not work
 
         Args:
@@ -469,8 +469,8 @@ class AdraApiBase(_ServoApiBase):
         return self._get_pos_limit_diff()
 
     def set_pos_limit_diff(self, pos):
-        """Set the maximum position following error threshold in position mode, 
-        the tracking error alarm threshold of the current position and the target position, 
+        """Set the maximum position following error threshold in position mode,
+        the tracking error alarm threshold of the current position and the target position,
         other modes such as speed mode and current mode do not work
 
         Args:
@@ -486,7 +486,7 @@ class AdraApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            p (int): parameter P
+            p (float): parameter P
         """
         return self._get_pos_pidp()
 
@@ -494,7 +494,7 @@ class AdraApiBase(_ServoApiBase):
         """Get position loop control parameter P
 
         Args:
-            p (int): parameter P
+            p (float): parameter P
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -511,7 +511,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_pos_smooth_cyc()
 
     def set_pos_smooth_cyc(self, cyc):
-        """Set smoothing filter period of the position loop. The larger the smoothing period, 
+        """Set smoothing filter period of the position loop. The larger the smoothing period,
         the smoother the movement and the slower the response. The range is 1 to 125
 
         Args:
@@ -522,6 +522,12 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._set_pos_smooth_cyc(cyc)
 
+    def get_pos_adrc_param(self, i):
+        return self._get_pos_adrc_param(i)
+
+    def set_pos_adrc_param(self, i, param):
+        return self._set_pos_adrc_param(i, param)
+
     def pos_cal_zero(self):
         """Set current position as mechanical zero, after the operation, the user needs to restart the device
 
@@ -530,9 +536,9 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._pos_cal_zero()
 
-############################################################
-#                       Speed Api
-############################################################
+    ############################################################
+    #                       Speed Api
+    ############################################################
 
     def get_vel_target(self):
         """Get target speed
@@ -573,7 +579,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_vel_limit_min()
 
     def set_vel_limit_min(self, vel):
-        """Set the minimum limit of the speed in speed mode and position mode, 
+        """Set the minimum limit of the speed in speed mode and position mode,
         other modes such as current mode do not work
 
         Args:
@@ -594,7 +600,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_vel_limit_max()
 
     def set_vel_limit_max(self, vel):
-        """Set maximum limit of the speed in speed mode and position mode, 
+        """Set maximum limit of the speed in speed mode and position mode,
         other modes such as current mode do not work
 
         Args:
@@ -616,7 +622,7 @@ class AdraApiBase(_ServoApiBase):
 
     def set_vel_limit_diff(self, vel):
         """Set the maximum speed following error threshold in the speed mode,
-        the tracking error alarm threshold of the current spped and the target speed, 
+        the tracking error alarm threshold of the current spped and the target speed,
         other modes such as position mode and current mode do not work
 
         Args:
@@ -632,7 +638,7 @@ class AdraApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            p (int): parameter P
+            p (float): parameter P
         """
         return self._get_vel_pidp()
 
@@ -640,7 +646,7 @@ class AdraApiBase(_ServoApiBase):
         """Set speed loop control parameter P
 
         Args:
-            p (int): parameter P
+            p (float): parameter P
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -652,7 +658,7 @@ class AdraApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            pid_i (int): parameter pid_i
+            pid_i (float): parameter pid_i
         """
         return self._get_vel_pidi()
 
@@ -660,7 +666,7 @@ class AdraApiBase(_ServoApiBase):
         """Set speed loop control parameter I
 
         Args:
-            pid_i (int): parameter pid_i
+            pid_i (float): parameter pid_i
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -677,7 +683,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_vel_smooth_cyc()
 
     def set_vel_smooth_cyc(self, cyc):
-        """Set smoothing filter period of the speed loop. The larger the smoothing period, 
+        """Set smoothing filter period of the speed loop. The larger the smoothing period,
         the smoother the movement and the slower the response. The range is 1 to 125
 
         Args:
@@ -688,10 +694,15 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._set_vel_smooth_cyc(cyc)
 
+    def get_vel_adrc_param(self, i):
+        return self._get_vel_adrc_param(i)
 
-############################################################
-#                       Current Api
-############################################################
+    def set_vel_adrc_param(self, i, param):
+        return self._set_vel_adrc_param(i, param)
+
+    ############################################################
+    #                       Current Api
+    ############################################################
 
     def get_tau_target(self):
         """Get target current
@@ -772,8 +783,8 @@ class AdraApiBase(_ServoApiBase):
         return self._get_tau_limit_diff()
 
     def set_tau_limit_diff(self, value):
-        """Set the maximum current following error threshold in the current mode, 
-        the tracking error alarm threshold of the current current and the target current, 
+        """Set the maximum current following error threshold in the current mode,
+        the tracking error alarm threshold of the current current and the target current,
         other modes such as position mode and speed mode do not work
 
         Args:
@@ -789,7 +800,7 @@ class AdraApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            pid_p (int): parameter P
+            pid_p (float): parameter P
         """
         return self._get_tau_pidp()
 
@@ -797,7 +808,7 @@ class AdraApiBase(_ServoApiBase):
         """Set current loop control parameter P
 
         Args:
-            pid_p (int): parameter P
+            pid_p (float): parameter P
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -809,7 +820,7 @@ class AdraApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            pid_i (int): parameter I
+            pid_i (float): parameter I
         """
         return self._get_tau_pidi()
 
@@ -817,7 +828,7 @@ class AdraApiBase(_ServoApiBase):
         """Set current loop control parameter I
 
         Args:
-            pid_i (int): parameter I
+            pid_i (float): parameter I
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -834,7 +845,7 @@ class AdraApiBase(_ServoApiBase):
         return self._get_tau_smooth_cyc()
 
     def set_tau_smooth_cyc(self, value):
-        """Set smoothing filter period of the current loop. The larger the smoothing period, 
+        """Set smoothing filter period of the current loop. The larger the smoothing period,
         the smoother the movement and the slower the response. The range is 1 to 125
 
         Args:
@@ -844,3 +855,9 @@ class AdraApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._set_tau_smooth_cyc(value)
+
+    def get_tau_adrc_param(self, i):
+        return self._get_tau_adrc_param(i)
+
+    def set_tau_adrc_param(self, i, param):
+        return self._set_tau_adrc_param(i, param)

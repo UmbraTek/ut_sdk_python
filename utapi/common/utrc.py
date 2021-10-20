@@ -8,7 +8,7 @@ from common import print_msg
 from common import crc16
 
 
-class UTRC_RX_ERROR():
+class UTRC_RX_ERROR:
     M_ID = -1
     S_ID = -2
     TIMEOUT = -3
@@ -29,7 +29,7 @@ class UTRC_RW:
     W = 1
 
 
-class UtrcType():
+class UtrcType:
     def __init__(self):
         self.master_id = 0xAA
         self.slave_id = 0
@@ -97,7 +97,7 @@ class UtrcType():
         print_msg.nhex("buf  : ", self.buf, len(self.buf))
 
 
-class UtrcClient():
+class UtrcClient:
     def __init__(self, port_fp):
         self.port_fp = port_fp
         self.port_fp.flush()
@@ -131,7 +131,7 @@ class UtrcClient():
             ret = UTRC_RX_ERROR.S_ID
         elif rx_utrc.state != 0:
             ret = UTRC_RX_ERROR.STATE
-        elif rx_utrc.len != r_len + 1:
+        elif rx_utrc.len != r_len + 1 and r_len != 0x55:
             print("[UtrcCli] Error: UTRC_RX_ERROR.LEN: %d %d" % (rx_utrc.len, r_len))
             ret = UTRC_RX_ERROR.LEN
         elif rx_utrc.rw != tx_utrc.rw:
@@ -156,7 +156,7 @@ class UX2HEX_RXSTART:
 
 class UtrcDecode:
     def __init__(self, fromid, toid):
-        self.DB_FLG = '[ux2 ptcl] '
+        self.DB_FLG = "[ux2 ptcl] "
         self.rxstate = UX2HEX_RXSTART.FROMID
         self.data_idx = 0
         self.len = 0
@@ -220,8 +220,8 @@ class UtrcDecode:
             elif UX2HEX_RXSTART.CRC2 == self.rxstate:
                 self.rxbuf += rxch
                 self.rxstate = UX2HEX_RXSTART.FROMID
-                crc = crc16.crc_modbus(self.rxbuf[:self.len + 3])
-                if (crc[0] == self.rxbuf[self.len + 3] and crc[1] == self.rxbuf[self.len + 4]):
+                crc = crc16.crc_modbus(self.rxbuf[: self.len + 3])
+                if crc[0] == self.rxbuf[self.len + 3] and crc[1] == self.rxbuf[self.len + 4]:
                     if rx_que.full():
                         rx_que.get()
                     rx_que.put(self.rxbuf)

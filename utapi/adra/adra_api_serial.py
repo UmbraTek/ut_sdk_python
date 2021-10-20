@@ -7,13 +7,14 @@
 from common.utrc import UtrcType, UtrcClient, UtrcDecode
 from common.utcc import UtccType, UtccClient
 from common.socket_serial import SocketSerial
-#from base.servo_api_base import _ServoApiBase
+
+# from base.servo_api_base import _ServoApiBase
 from adra.adra_api_base import AdraApiBase
 
 
 class AdraApiSerial(AdraApiBase):
     def __init__(self, port, baud, is_can=0):
-        """The AdraApiSerial class is an interface class for controlling ADRA connectors through the serial port. 
+        """The AdraApiSerial class is an interface class for controlling ADRA connectors through the serial port.
         It needs to connect the serial port to RS485 module or TCP/IP to CAN module
 
         Args:
@@ -21,7 +22,7 @@ class AdraApiSerial(AdraApiBase):
             baud (int): communication baud rate
             is_can (int, optional): 0 means RS485 communication; 1 means CAN communication. Defaults to 0.
         """
-        self.DB_FLG = '[SApiSeri] '
+        self.DB_FLG = "[SApiSeri] "
         self.__is_err = 0
         id = 1
 
@@ -36,7 +37,7 @@ class AdraApiSerial(AdraApiBase):
             self.socket_fp.flush()
             self.bus_client = UtccClient(self.socket_fp)
             ret = self.bus_client.connect_device()
-            if (ret != 0):
+            if ret != 0:
                 self.__is_err = 1
                 print(self.DB_FLG + "Error: connect_device: ret = ", ret)
 

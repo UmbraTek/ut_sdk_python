@@ -10,9 +10,9 @@ from common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
 import logging
 
 
-class _ArmApiBase():
+class _ArmApiBase:
     def __init__(self, socket_fp):
-        self.DB_FLG = '[UbotApi ] '
+        self.DB_FLG = "[UbotApi ] "
         self.__is_err = 0
 
         self.socket_fp = socket_fp
@@ -29,7 +29,7 @@ class _ArmApiBase():
 
         ret, axis = self.get_axis()
 
-        if (ret == UTRC_RX_ERROR.STATE or ret == 0):
+        if ret == UTRC_RX_ERROR.STATE or ret == 0:
             self.__AXIS = axis
             self.reg = ARM_REG(self.__AXIS)
         else:
@@ -37,11 +37,10 @@ class _ArmApiBase():
             self.__is_err = 1
 
     def close(self):
-        """Disconnect from the arm
-        """
+        """Disconnect from the arm"""
         if self.socket_fp:
             self.socket_fp.close()
-            logging.info('[UbotApi ] ubot api close')
+            logging.info("[UbotApi ] ubot api close")
 
     def __send(self, rw, cmd, cmd_data):
         if self.__is_err:
@@ -74,9 +73,9 @@ class _ArmApiBase():
     def is_err(self):
         return self.__is_err
 
-############################################################
-#                       Basic Api
-############################################################
+    ############################################################
+    #                       Basic Api
+    ############################################################
 
     def get_uuid(self):
         """Get the uuid of the arm
@@ -191,9 +190,9 @@ class _ArmApiBase():
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.SAVED_PARM)
         return ret
 
-############################################################
-#                       Control Api
-############################################################
+    ############################################################
+    #                       Control Api
+    ############################################################
 
     def get_motion_mode(self):
         """Get the operating mode of the arm
@@ -233,9 +232,9 @@ class _ArmApiBase():
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            value (int): There are a total of 32 bits, the 0th bit represents the enable state of the first joint brake, and so on. 
-                0xFFFF means all enable 
-                0x0000 means all disable 
+            value (int): There are a total of 32 bits, the 0th bit represents the enable state of the first joint brake, and so on.
+                0xFFFF means all enable
+                0x0000 means all disable
                 0x0001 means only the first joint is enabled
         """
         self.__send(UTRC_RW.R, self.reg.MOTION_ENABLE, None)
@@ -265,9 +264,9 @@ class _ArmApiBase():
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            value (int): There are a total of 32 bits, the 0th bit represents the enable state of the first joint brake, and so on. 
-                0xFFFF means all enable 
-                0x0000 means all disable 
+            value (int): There are a total of 32 bits, the 0th bit represents the enable state of the first joint brake, and so on.
+                0xFFFF means all enable
+                0x0000 means all disable
                 0x0001 means only the first joint is enabled
 
         """
@@ -382,9 +381,9 @@ class _ArmApiBase():
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.CMD_NUM)
         return ret
 
-############################################################
-#                     Trajectory Api
-############################################################
+    ############################################################
+    #                     Trajectory Api
+    ############################################################
 
     def moveto_cartesian_line(self, mvpose, mvvelo, mvacc, mvtime):
         """Move to position (linear in tool-space)
@@ -411,7 +410,7 @@ class _ArmApiBase():
         return ret
 
     def moveto_cartesian_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
-        """Blend circular (in tool-space) and move linear (in tool-space) to position. 
+        """Blend circular (in tool-space) and move linear (in tool-space) to position.
         Accelerates to and moves with constant tool speed v.
 
         Args:
@@ -454,7 +453,7 @@ class _ArmApiBase():
 
     def moveto_cartesian_circle(self, pose1, pose2, mvvelo, mvacc, mvtime, percent):
         """Move to position (circular in tool-space).
-        TCP moves on the circular arc segment from current pose, through pose1 to pose2. 
+        TCP moves on the circular arc segment from current pose, through pose1 to pose2.
         Accelerates to and moves with constant tool speed mvvelo.
 
         Args:
@@ -463,7 +462,7 @@ class _ArmApiBase():
             mvvelo (float): tool speed [m/s]
             mvacc (float): tool acceleration [mm/sˆ2]
             mvtime (float): NOT used in current version
-            percent (float): The length of the trajectory, the unit is a percentage of the circumference, 
+            percent (float): The length of the trajectory, the unit is a percentage of the circumference,
                               which can be tens of percent or hundreds of percent
 
         Returns:
@@ -610,9 +609,9 @@ class _ArmApiBase():
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.PLAN_SLEEP)
         return ret
 
-############################################################
-#                    Parameter Api
-############################################################
+    ############################################################
+    #                    Parameter Api
+    ############################################################
 
     def get_tcp_jerk(self):
         """Get the jerk of the tool-space
@@ -789,9 +788,9 @@ class _ArmApiBase():
         return ret, value
 
     def set_gravity_dir(self, value):
-        """Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed, 
+        """Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
         this corresponds to an accleration of gaway from the earth’s centre
-        $ set_gravity_dir([0, 9.82*sin(theta), 9.82*cos(theta)]) // will set the acceleration for a robot 
+        $ set_gravity_dir([0, 9.82*sin(theta), 9.82*cos(theta)]) // will set the acceleration for a robot
         that is rotated ”theta” radians around the x-axis of the robot base coordinate system
 
         Args:
@@ -821,7 +820,7 @@ class _ArmApiBase():
         """Set the sensitivity of collision detection
 
         Args:
-            num (int): 0-5, 0 means close collision detection, sensitivity increases from 1 to 5, 
+            num (int): 0-5, 0 means close collision detection, sensitivity increases from 1 to 5,
             and 5 is the highest sensitivity
 
         Returns:
@@ -860,13 +859,13 @@ class _ArmApiBase():
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.TEACH_SENS)
         return ret
 
-############################################################
-#                       State Api
-############################################################
+    ############################################################
+    #                       State Api
+    ############################################################
 
     def get_tcp_target_pos(self):
         """Get the current target tool pose
-        Get the 6d pose representing the tool position and orientation specified in the base frame. 
+        Get the 6d pose representing the tool position and orientation specified in the base frame.
         The calculation of this pose is based on the current target joint positions.
 
         Returns:
@@ -881,7 +880,7 @@ class _ArmApiBase():
 
     def get_tcp_actual_pos(self):
         """Get the current measured tool pose
-        Get the 6d pose representing the tool position and orientation specified in the base frame. 
+        Get the 6d pose representing the tool position and orientation specified in the base frame.
         The calculation of this pose is based on the actual robot encoder readings.
 
         Returns:
@@ -892,8 +891,8 @@ class _ArmApiBase():
 
     def get_joint_target_pos(self):
         """Get the desired angular position of all joints
-        The angular target positions are expressed in radians and returned as a vector of length N. 
-        Note that the output might differ from the output of get_joint_actual_pose(), 
+        The angular target positions are expressed in radians and returned as a vector of length N.
+        Note that the output might differ from the output of get_joint_actual_pose(),
         especially during cceleration and heavy loads.
 
         Returns:
@@ -908,8 +907,8 @@ class _ArmApiBase():
 
     def get_joint_actual_pos(self):
         """Get the actual angular positions of all joints
-        The angular actual positions are expressed in radians and returned as a vector of length N. 
-        Note that the output might differ from the output of get target joint positions(), 
+        The angular actual positions are expressed in radians and returned as a vector of length N.
+        Note that the output might differ from the output of get target joint positions(),
         especially during cceleration and heavy loads.
 
         Returns:
@@ -919,8 +918,8 @@ class _ArmApiBase():
         return 0, 0
 
     def get_ik(self, pose, qnear=None):
-        """Inverse kinematic transformation (tool space -> joint space). 
-        If qnear is defined, the solution closest to qnear is returned. 
+        """Inverse kinematic transformation (tool space -> joint space).
+        If qnear is defined, the solution closest to qnear is returned.
         Otherwise, the solution closest to the current joint positions is returned.
 
         Args:
@@ -934,7 +933,7 @@ class _ArmApiBase():
         return 0, 0
 
     def get_fk(self, joints):
-        """Forward kinematic transformation (joint space -> tool space). 
+        """Forward kinematic transformation (joint space -> tool space).
 
         Args:
             joints (list): joint positions [rad]
@@ -959,7 +958,7 @@ class _ArmApiBase():
 
     def is_tcp_limit(self, pose):
         """Checks if the given pose is reachable and within the current safety limits of the robot.
-        This check considers joint limits (if the target pose is specified as joint positions), safety planes limits, 
+        This check considers joint limits (if the target pose is specified as joint positions), safety planes limits,
         If a solution is found when applying the inverse kinematics to the given target TCP pose, this pose is considered reachable.
 
         Args:
@@ -971,10 +970,9 @@ class _ArmApiBase():
         """
         return 0, 1
 
-
-############################################################
-#                       Rs485 Api
-############################################################
+    ############################################################
+    #                       Rs485 Api
+    ############################################################
 
     def get_utrc_int8_now(self, line, id, reg):
         """Read the 8-bit register of the device through the utrc protocol
@@ -1173,14 +1171,14 @@ class _ArmApiBase():
         txdata += bytes([id])
         txdata += bytes([reg])
         txdata += bytes([len])
-        self.reg.UTRC_INT8N_NOW[2] = len
+        self.reg.UTRC_INT8N_NOW[2] = len + 1
 
         self.__send(UTRC_RW.R, self.reg.UTRC_INT8N_NOW, txdata)
         ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_INT8N_NOW)
-        value = utrc_rmsg.data[0:len + 1]
+        value = utrc_rmsg.data[0 : len + 1]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return value[0], value[1:len + 1]
+            return value[0], value[1 : len + 1]
         else:
             return ret, ret
 
@@ -1350,7 +1348,7 @@ class _ArmApiBase():
             data (list): Data received
         """
         if tx_len > 125 or rx_len > 125:
-            return -99, 0, 0, 0
+            return -991, 0, 0, 0
 
         txdata = bytes([line])
         txdata += bytes([timeout_ms])
@@ -1363,10 +1361,10 @@ class _ArmApiBase():
 
         self.__send(UTRC_RW.W, self.reg.PASS_RS485_NOW, txdata)
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.PASS_RS485_NOW)
-        value = utrc_rmsg.data[0:rx_len + 2]
+        value = utrc_rmsg.data[0 : rx_len + 2]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return value[0], value[1:rx_len + 2]
+            return value[0], value[1 : rx_len + 2]
         else:
             return ret, ret
 
