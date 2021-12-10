@@ -581,6 +581,24 @@ class _ArmApiBase:
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVE_SERVOJ)
         return ret
 
+    def moveto_servo_joint(self, frames_num, mvjoint, mvtime):
+        data_len = frames_num * (self.__AXIS + 1)
+        txdata = [0] * data_len
+
+        for i in range(frames_num):
+            for j in range(self.__AXIS):
+                txdata[i * (self.__AXIS + 1) + j] = mvjoint[i][j]
+            txdata[i * (self.__AXIS + 1) + self.__AXIS] = mvtime[i]
+
+        datas = hex_data.uint32_to_bytes_big(frames_num)
+        datas += hex_data.fp32_to_bytes_big(txdata, data_len)
+
+        self.reg.MOVES_JOINT[3] = (data_len + 1) * 4
+        self.__send(UTRC_RW.W, self.reg.MOVES_JOINT, datas)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVES_JOINT)
+
+        return ret
+
     def move_sleep(self, time):
         """Sleep for an amount of motion time
 
@@ -1175,10 +1193,10 @@ class _ArmApiBase:
 
         self.__send(UTRC_RW.R, self.reg.UTRC_INT8N_NOW, txdata)
         ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_INT8N_NOW)
-        value = utrc_rmsg.data[0 : len + 1]
+        value = utrc_rmsg.data[0:len + 1]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return value[0], value[1 : len + 1]
+            return value[0], value[1:len + 1]
         else:
             return ret, ret
 
@@ -1361,10 +1379,10 @@ class _ArmApiBase:
 
         self.__send(UTRC_RW.W, self.reg.PASS_RS485_NOW, txdata)
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.PASS_RS485_NOW)
-        value = utrc_rmsg.data[0 : rx_len + 2]
+        value = utrc_rmsg.data[0:rx_len + 2]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return value[0], value[1 : rx_len + 2]
+            return value[0], value[1:rx_len + 2]
         else:
             return ret, ret
 
@@ -1397,3 +1415,224 @@ class _ArmApiBase:
             return 0
         else:
             return ret
+
+    def get_utrc_u8float_now(self, line, id, reg, num):
+
+        txdata = bytes([line])
+        txdata += bytes([id])
+        txdata += bytes([reg])
+        txdata += bytes([num])
+
+        self.__send(UTRC_RW.R, self.reg.UTRC_U8FP32_NOW, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_U8FP32_NOW)
+        value = [0] * 2
+        value[0] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[0:4])
+        value[1] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[4:8])
+        if ret == 0 or ret == UTRC_RX_ERROR.STATE:
+            return value[0], value[1]
+        else:
+            return ret, ret
+
+    def set_utrc_u8float_now(self, line, id, reg, num, value):
+
+        txdata = bytes([line])
+        txdata += bytes([id])
+        txdata += bytes([reg])
+        txdata += bytes([num])
+        txdata += hex_data.fp32_to_bytes_big(value)
+
+        self.__send(UTRC_RW.W, self.reg.UTRC_U8FP32_NOW, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_U8FP32_NOW)
+        value = hex_data.bytes_to_int8(utrc_rmsg.data[0])
+        if ret == 0 or ret == UTRC_RX_ERROR.STATE:
+            return value
+        else:
+            return ret
+
+    def get_gpio_in(self, line, id):
+
+        txdata = bytes([line])
+        txdata += bytes([id])
+
+        self.__send(UTRC_RW.R, self.reg.GPIO_IN, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.GPIO_IN)
+        value = [0] * 20
+        value[0] = hex_data.bytes_to_int8(utrc_rmsg.data[0])
+        value[1] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[1:5])  # fun
+        value[2] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[5:9])  # digit
+        value[3] = utrc_rmsg.data[9]
+        for i in range(value[3]):
+            value[4 + i] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[(10 + i * 4):(14 + i * 4)])  # digit
+        if ret == 0 or ret == UTRC_RX_ERROR.STATE:
+            return value[0], value[1:]
+        else:
+            return ret, ret
+
+    def get_tgpio_in(self):
+        """end-tool gpio
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: controller function
+                data[1]: digit I/O input
+                data[2]: dac num
+                data[2-N]: dac value
+        """
+        return self.get_gpio_in(2, 1)
+
+    def get_cgpio_in(self):
+        """controller gpio
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: controller function
+                data[1]: digit I/O input
+                data[2]: dac num
+                data[2-N]: dac value
+        """
+        return self.get_gpio_in(3, 1)
+
+    def get_gpio_ou(self, line, id):
+
+        txdata = bytes([line])
+        txdata += bytes([id])
+
+        self.__send(UTRC_RW.R, self.reg.GPIO_OU, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.GPIO_OU)
+        value = [0] * 20
+        value[0] = hex_data.bytes_to_int8(utrc_rmsg.data[0])
+        value[1] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[1:5])  # fun
+        value[2] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[5:9])  # digit
+        value[3] = utrc_rmsg.data[9]
+        for i in range(value[3]):
+            value[4 + i] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[(10 + i * 4):(14 + i * 4)])  # digit
+        if ret == 0 or ret == UTRC_RX_ERROR.STATE:
+            return value[0], value[1:]
+        else:
+            return ret, ret
+
+    def get_tgpio_out(self):
+        """end-tool gpio
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: gpio function
+                data[1]: digit I/O output
+                data[2]: adc num
+                data[2-N]: adc value
+        """
+        return self.get_gpio_ou(2, 1)
+
+    def get_cgpio_out(self):
+        """controller gpio
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: gpio function
+                data[1]: digit I/O output
+                data[2]: adc num
+                data[2-N]: adc value
+        """
+        return self.get_gpio_ou(3, 1)
+
+    def set_tgpio_digit_out(self, value):
+        """end-tool gpio
+
+        Args:
+            value (uint32_t): Digital I/O output value
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self.set_utrc_int32_now(2, 1, 0x13, int(value))
+
+    def set_cgpio_digit_out(self, value):
+        """controller gpio
+
+        Args:
+            value (uint32_t): Digital I/O input value
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self.set_utrc_int32_now(3, 1, 0x13, int(value))
+
+    def get_cgpio_uuid(self):
+        ret, data = self.get_utrc_int8n_now(3, 1, 0x01, 12)
+        print(ret)
+        print(data)
+        uuid = data[0:12]
+        string = ""
+        for i in uuid:
+            string += "{0:0>2}".format(str(hex(i))[2:])
+        return ret, string
+
+    def get_cgpio_sw_version(self):
+        ret, data = self.get_utrc_int8n_now(3, 1, 0x02, 12)
+        version = data[0:12]
+        print("get_cgpio_sw_version: ")
+        print(version)
+        version = "".join([chr(x) for x in version])
+        print(version)
+        return ret, version
+
+    def get_cgpio_hw_version(self):
+        ret, data = self.get_utrc_int8n_now(3, 1, 0x03, 12)
+        version = data[0:12]
+        print("get_cgpio_hw_version: ")
+        print(version)
+        string = ""
+        for i in version:
+            string += "{0:0>2}".format(str(hex(i))[2:])
+        print(string)
+        return ret, string
+
+    def get_tgpio_uuid(self):
+        ret, data = self.get_utrc_int8n_now(2, 1, 0x01, 12)
+        print(ret)
+        print(data)
+        uuid = data[0:12]
+        string = ""
+        for i in uuid:
+            string += "{0:0>2}".format(str(hex(i))[2:])
+        return ret, string
+
+    def get_tgpio_sw_version(self):
+        ret, data = self.get_utrc_int8n_now(2, 1, 0x02, 12)
+        version = data[0:12]
+        print("get_tgpio_sw_version: ")
+        print(version)
+        version = "".join([chr(x) for x in version])
+        print(version)
+        return ret, version
+
+    def get_tgpio_hw_version(self):
+        ret, data = self.get_utrc_int8n_now(2, 1, 0x03, 12)
+        version = data[0:12]
+        print("get_tgpio_hw_version: ")
+        print(version)
+        string = ""
+        for i in version:
+            string += "{0:0>2}".format(str(hex(i))[2:])
+        print(string)
+        return ret, string
+
+    def get_friction(self, axis):
+        txdata = bytes([self.reg.FRICTION[0]])
+        txdata += bytes([int(axis)])
+        self.__send(UTRC_RW.R, self.reg.FRICTION, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.FRICTION)
+        fri = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
+        return ret, fri
+
+    def set_friction(self, axis, fri):
+        txdata = bytes([self.reg.FRICTION[0]])
+        txdata += bytes([int(axis)])
+        txdata += hex_data.fp32_to_bytes_big(fri, 4)
+        self.__send(UTRC_RW.W, self.reg.FRICTION, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.FRICTION)
+        return ret

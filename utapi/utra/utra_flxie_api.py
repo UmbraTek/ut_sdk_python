@@ -141,13 +141,13 @@ class UtraFlxiE2Api():
         return self.utra.get_utrc_float_now(self.line, self.id, REG.POS_CURRENT[0])
 
     def get_pos_pidp(self):
-        return self.utra.get_utrc_int32_now(self.line, self.id, REG.POS_PIDP[0])
+        return self.utra.get_utrc_float_now(self.line, self.id, REG.POS_PIDP[0])
 
     def set_pos_pidp(self, pid, now=True):
         if now:
-            return self.utra.set_utrc_int32_now(self.line, self.id, REG.POS_PIDP[0], pid)
+            return self.utra.set_utrc_float_now(self.line, self.id, REG.POS_PIDP[0], pid)
         else:
-            return self.utra.set_utrc_int32_que(self.line, self.id, REG.POS_PIDP[0], pid)
+            return self.utra.set_utrc_float_que(self.line, self.id, REG.POS_PIDP[0], pid)
 
     def get_pos_smooth_cyc(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.POS_SMOOTH_CYC[0])
@@ -186,22 +186,22 @@ class UtraFlxiE2Api():
             return self.utra.set_utrc_float_que(self.line, self.id, REG.VEL_LIMIT_MAX[0], vel)
 
     def get_vel_pidp(self):
-        return self.utra.get_utrc_int32_now(self.line, self.id, REG.VEL_PIDP[0])
+        return self.utra.get_utrc_float_now(self.line, self.id, REG.VEL_PIDP[0])
 
     def set_vel_pidp(self, pid_p, now=True):
         if now:
-            return self.utra.set_utrc_int32_now(self.line, self.id, REG.VEL_PIDP[0], pid_p)
+            return self.utra.set_utrc_float_now(self.line, self.id, REG.VEL_PIDP[0], pid_p)
         else:
-            return self.utra.set_utrc_int32_que(self.line, self.id, REG.VEL_PIDP[0], pid_p)
+            return self.utra.set_utrc_float_que(self.line, self.id, REG.VEL_PIDP[0], pid_p)
 
     def get_vel_pidi(self):
-        return self.utra.get_utrc_int32_now(self.line, self.id, REG.VEL_PIDI[0])
+        return self.utra.get_utrc_float_now(self.line, self.id, REG.VEL_PIDI[0])
 
     def set_vel_pidi(self, pid_i, now=True):
         if now:
-            return self.utra.set_utrc_int32_now(self.line, self.id, REG.VEL_PIDI[0], pid_i)
+            return self.utra.set_utrc_float_now(self.line, self.id, REG.VEL_PIDI[0], pid_i)
         else:
-            return self.utra.set_utrc_int32_que(self.line, self.id, REG.VEL_PIDI[0], pid_i)
+            return self.utra.set_utrc_float_que(self.line, self.id, REG.VEL_PIDI[0], pid_i)
 
     def get_vel_smooth_cyc(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.VEL_SMOOTH_CYC[0])
@@ -245,22 +245,22 @@ class UtraFlxiE2Api():
             return self.utra.set_utrc_float_que(self.line, self.id, REG.TAU_LIMIT_MAX[0], tau)
 
     def get_tau_pidp(self):
-        return self.utra.get_utrc_int32_now(self.line, self.id, REG.TAU_PIDP[0])
+        return self.utra.get_utrc_float_now(self.line, self.id, REG.TAU_PIDP[0])
 
     def set_tau_pidp(self, pid_p, now=True):
         if now:
-            return self.utra.set_utrc_int32_now(self.line, self.id, REG.TAU_PIDP[0], pid_p)
+            return self.utra.set_utrc_float_now(self.line, self.id, REG.TAU_PIDP[0], pid_p)
         else:
-            return self.utra.set_utrc_int32_que(self.line, self.id, REG.TAU_PIDP[0], pid_p)
+            return self.utra.set_utrc_float_que(self.line, self.id, REG.TAU_PIDP[0], pid_p)
 
     def get_tau_pidi(self):
-        return self.utra.get_utrc_int32_now(self.line, self.id, REG.TAU_PIDI[0])
+        return self.utra.get_utrc_float_now(self.line, self.id, REG.TAU_PIDI[0])
 
     def set_tau_pidi(self, pid_i, now=True):
         if now:
-            return self.utra.set_utrc_int32_now(self.line, self.id, REG.TAU_PIDI[0], pid_i)
+            return self.utra.set_utrc_float_now(self.line, self.id, REG.TAU_PIDI[0], pid_i)
         else:
-            return self.utra.set_utrc_int32_que(self.line, self.id, REG.TAU_PIDI[0], pid_i)
+            return self.utra.set_utrc_float_que(self.line, self.id, REG.TAU_PIDI[0], pid_i)
 
     def get_tau_smooth_cyc(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.TAU_SMOOTH_CYC[0])

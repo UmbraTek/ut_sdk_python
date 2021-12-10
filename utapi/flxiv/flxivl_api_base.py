@@ -5,6 +5,14 @@
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
 from base.servo_api_base import _ServoApiBase
+from common.utrc import UTRC_RW
+from common import hex_data
+
+
+class FLXIV_REG:
+    null = 0
+
+    SENSER1 = [0x60, 0, 16, null, null]
 
 
 class FlxiVlApiBase(_ServoApiBase):
@@ -244,15 +252,6 @@ class FlxiVlApiBase(_ServoApiBase):
         """
         return self._get_bus_volt()
 
-    def get_bus_curr(self):
-        """Get bus current
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            current (float): current [A]
-        """
-        return self._get_bus_curr()
-
     def get_error_code(self):
         """Get error code, the meaning of the fault code is referred to the appendix <fault code>
 
@@ -261,3 +260,9 @@ class FlxiVlApiBase(_ServoApiBase):
             code (int): error code
         """
         return self._get_error_code()
+
+    def get_senser(self):
+        self._send(UTRC_RW.R, FLXIV_REG.SENSER1, None)
+        ret, bus_rmsg = self._pend(UTRC_RW.R, FLXIV_REG.SENSER1)
+        senser = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:16], 4)
+        return ret, senser

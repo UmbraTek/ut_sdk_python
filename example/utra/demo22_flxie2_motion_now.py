@@ -7,6 +7,7 @@
 import sys
 import argparse
 import os
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.utra.utra_api_tcp import UtraApiTcp
@@ -21,9 +22,12 @@ if __name__ == '__main__':
     ubot = UtraApiTcp(args.ip)
     fixi = UtraFlxiE2Api(ubot, 101)
 
-    ret = fixi.set_motion_mode(3)
+    ret = fixi.set_motion_mode(1)
     print("set_motion_mode: %d" % (ret))
     ret = fixi.set_motion_enable(1)
     print("set_motion_enable: %d" % (ret))
-    ret = fixi.set_tau_target(-0.5)
-    print("set_tau_target: %d" % (ret))
+    ret = fixi.set_pos_target(0)
+    print("set_pos_target: %d" % (ret))
+    time.sleep(3)
+    ret = fixi.set_pos_target(20)
+    print("set_pos_target: %d" % (ret))

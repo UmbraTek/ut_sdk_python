@@ -52,6 +52,7 @@ class ARM_REG:
         self.MOVEJ_HOME = [0x3A, null, null, 12, 4]
         self.MOVE_SLEEP = [0x3B, null, null, 4, 4]
         self.MOVE_SERVOJ = [0x3C, null, null, (AXIS + 3) * 4, 4]
+        self.MOVES_JOINT = [0x3D, null, null, 0x55, 4]
         self.PLAN_SLEEP = [0x3F, null, null, 4, 4]
 
         self.TCP_JERK = [0x40, 0, 4, 4, 4]

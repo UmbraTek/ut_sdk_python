@@ -220,7 +220,7 @@ class UtrcDecode:
             elif UX2HEX_RXSTART.CRC2 == self.rxstate:
                 self.rxbuf += rxch
                 self.rxstate = UX2HEX_RXSTART.FROMID
-                crc = crc16.crc_modbus(self.rxbuf[: self.len + 3])
+                crc = crc16.crc_modbus(self.rxbuf[:self.len + 3])
                 if crc[0] == self.rxbuf[self.len + 3] and crc[1] == self.rxbuf[self.len + 4]:
                     if rx_que.full():
                         rx_que.get()
