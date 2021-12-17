@@ -523,9 +523,27 @@ class AdraApiBase(_ServoApiBase):
         return self._set_pos_smooth_cyc(cyc)
 
     def get_pos_adrc_param(self, i):
+        """Get speed loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be get
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            value (float): parameter Adrc
+        """
         return self._get_pos_adrc_param(i)
 
     def set_pos_adrc_param(self, i, param):
+        """Set position loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be set
+            param ([type]): [description]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
         return self._set_pos_adrc_param(i, param)
 
     def pos_cal_zero(self):
@@ -695,9 +713,27 @@ class AdraApiBase(_ServoApiBase):
         return self._set_vel_smooth_cyc(cyc)
 
     def get_vel_adrc_param(self, i):
+        """Get speed loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be get
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            value (float): parameter Adrc
+        """
         return self._get_vel_adrc_param(i)
 
     def set_vel_adrc_param(self, i, param):
+        """Set speed loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be set
+            param ([type]): [description]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
         return self._set_vel_adrc_param(i, param)
 
     ############################################################
@@ -857,7 +893,25 @@ class AdraApiBase(_ServoApiBase):
         return self._set_tau_smooth_cyc(value)
 
     def get_tau_adrc_param(self, i):
+        """Get current loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be get
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            value (float): parameter Adrc
+        """
         return self._get_tau_adrc_param(i)
 
     def set_tau_adrc_param(self, i, param):
+        """Set current loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be set
+            param ([type]): [description]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
         return self._set_tau_adrc_param(i, param)

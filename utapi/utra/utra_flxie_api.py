@@ -9,6 +9,12 @@ from base.servo_reg import SERVO_REG as REG
 from common import hex_data
 
 
+class FLXIE_REG:
+    null = 0
+    UNLOCK_FUN = [0x22, 0, 1, 1, 0]
+    SENSER1 = [0x60, 0, 16, null, null]
+
+
 class UtraFlxiE2Api():
     def __init__(self, utra_api, id=101):
         self.DB_FLG = '[UtraFlxiE2Api] '
@@ -17,9 +23,9 @@ class UtraFlxiE2Api():
         self.id = id
         self.line = RS485_LINE.TGPIO
 
-############################################################
-#                       Basic Api
-############################################################
+    ############################################################
+    #                       Basic Api
+    ############################################################
 
     def get_uuid(self):
         ret, uuid = self.utra.get_utrc_int8n_now(self.line, self.id, REG.UUID[0], REG.UUID[2])
@@ -52,7 +58,9 @@ class UtraFlxiE2Api():
     def saved_parm(self):
         return self.utra.set_utrc_int8_now(self.line, self.id, REG.SAVED_PARM[0], REG.SAVED_PARM[0])
 
-############################################################
+    ############################################################
+    #                       Ectension Api
+    ############################################################
 
     def get_temp_limit(self):
         ret, value = self.utra.get_utrc_int8n_now(self.line, self.id, REG.TEMP_LIMIT[0], REG.TEMP_LIMIT[2])
@@ -91,7 +99,9 @@ class UtraFlxiE2Api():
         else:
             return self.utra.set_utrc_float_que(self.line, self.id, REG.CURR_LIMIT[0], value)
 
-############################################################
+    ############################################################
+    #                       Control Api
+    ############################################################
 
     def set_motion_mode(self, value, now=True):
         if now:
@@ -111,6 +121,9 @@ class UtraFlxiE2Api():
     def get_motion_enable(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.MOTION_ENABLE[0])
 
+    def set_unlock_function(self, value):
+        return self.utra.set_utrc_int8_now(self.line, self.id, FLXIE_REG.UNLOCK_FUN[0], value)
+
     def get_temp_motor(self):
         return self.utra.get_utrc_float_now(self.line, self.id, REG.TEMP_MOTOR[0])
 
@@ -126,7 +139,9 @@ class UtraFlxiE2Api():
     def get_error_code(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.ERROR_CODE[0])
 
-############################################################
+    ############################################################
+    #                       Position Api
+    ############################################################
 
     def get_pos_target(self):
         return self.utra.get_utrc_float_now(self.line, self.id, REG.POS_TARGET[0])
@@ -158,14 +173,18 @@ class UtraFlxiE2Api():
         else:
             return self.utra.set_utrc_int8_que(self.line, self.id, REG.POS_SMOOTH_CYC[0], value)
 
+    def get_pos_adrc_param(self, i):
+        return self.utra.get_utrc_u8float_now(self.line, self.id, REG.POS_ADRC_PARAM[0], i)
+
+    def set_pos_adrc_param(self, i, value):
+        return self.utra.set_utrc_u8float_now(self.line, self.id, REG.POS_ADRC_PARAM[0], i, value)
+
     def pos_cal_zero(self):
         return self.utra.set_utrc_int8_now(self.line, self.id, REG.POS_CAL_ZERO[0], REG.POS_CAL_ZERO[0])
 
-
-############################################################
-
-    def get_vel_current(self):
-        return self.utra.get_utrc_float_now(self.line, self.id, REG.VEL_CURRENT[0])
+    ############################################################
+    #                       Speed Api
+    ############################################################
 
     def get_vel_limit_min(self):
         return self.utra.get_utrc_float_now(self.line, self.id, REG.VEL_LIMIT_MIN[0])
@@ -185,33 +204,8 @@ class UtraFlxiE2Api():
         else:
             return self.utra.set_utrc_float_que(self.line, self.id, REG.VEL_LIMIT_MAX[0], vel)
 
-    def get_vel_pidp(self):
-        return self.utra.get_utrc_float_now(self.line, self.id, REG.VEL_PIDP[0])
-
-    def set_vel_pidp(self, pid_p, now=True):
-        if now:
-            return self.utra.set_utrc_float_now(self.line, self.id, REG.VEL_PIDP[0], pid_p)
-        else:
-            return self.utra.set_utrc_float_que(self.line, self.id, REG.VEL_PIDP[0], pid_p)
-
-    def get_vel_pidi(self):
-        return self.utra.get_utrc_float_now(self.line, self.id, REG.VEL_PIDI[0])
-
-    def set_vel_pidi(self, pid_i, now=True):
-        if now:
-            return self.utra.set_utrc_float_now(self.line, self.id, REG.VEL_PIDI[0], pid_i)
-        else:
-            return self.utra.set_utrc_float_que(self.line, self.id, REG.VEL_PIDI[0], pid_i)
-
-    def get_vel_smooth_cyc(self):
-        return self.utra.get_utrc_int8_now(self.line, self.id, REG.VEL_SMOOTH_CYC[0])
-
-    def set_vel_smooth_cyc(self, value, now=True):
-        if now:
-            return self.utra.set_utrc_int8_now(self.line, self.id, REG.VEL_SMOOTH_CYC[0], value)
-        else:
-            return self.utra.set_utrc_int8_que(self.line, self.id, REG.VEL_SMOOTH_CYC[0], value)
-
+    ############################################################
+    #                       Current Api
     ############################################################
 
     def get_tau_target(self):
@@ -270,3 +264,16 @@ class UtraFlxiE2Api():
             return self.utra.set_utrc_int8_now(self.line, self.id, REG.TAU_SMOOTH_CYC[0], value)
         else:
             return self.utra.set_utrc_int8_que(self.line, self.id, REG.TAU_SMOOTH_CYC[0], value)
+
+    def get_tau_adrc_param(self, i):
+        return self.utra.get_utrc_u8float_now(self.line, self.id, REG.TAU_ADRC_PARAM[0], i)
+
+    def set_tau_adrc_param(self, i, value):
+        return self.utra.set_utrc_u8float_now(self.line, self.id, REG.TAU_ADRC_PARAM[0], i, value)
+
+    ############################################################
+    #                       Senser Api
+    ############################################################
+
+    def get_senser(self):
+        return self.utra.get_utrc_nfloat_now(self.line, self.id, FLXIE_REG.SENSER1[0], 4)

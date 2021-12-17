@@ -11,7 +11,6 @@ from common import hex_data
 
 class FLXIV_REG:
     null = 0
-
     SENSER1 = [0x60, 0, 16, null, null]
 
 
@@ -262,6 +261,12 @@ class FlxiVlApiBase(_ServoApiBase):
         return self._get_error_code()
 
     def get_senser(self):
+        """Get the values of sensors, including pressure sensors and six-axis IMU sensors
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): [pump pressure, ROLL, PITCH, YAW]
+        """
         self._send(UTRC_RW.R, FLXIV_REG.SENSER1, None)
         ret, bus_rmsg = self._pend(UTRC_RW.R, FLXIV_REG.SENSER1)
         senser = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:16], 4)

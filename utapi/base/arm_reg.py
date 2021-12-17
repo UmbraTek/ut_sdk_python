@@ -89,6 +89,7 @@ class ARM_REG:
 
         # [line id reg num] [ret value] [line id reg num value] [ret]
         self.UTRC_U8FP32_NOW = [0x6A, 4, 8, 8, 1]
+        self.UTRC_FP32N_NOW = [0x6B, 4, 0x55, 0x55, 1]
 
         self.GPIO_IN = [0x6E, 2, 0x55, " ", " "]
         self.GPIO_OU = [0x6F, 2, 0x55, " ", " "]

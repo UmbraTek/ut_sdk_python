@@ -5,6 +5,14 @@
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
 from base.servo_api_base import _ServoApiBase
+from common.utrc import UTRC_RW
+from common import hex_data
+
+
+class FLXIE_REG:
+    null = 0
+    UNLOCK_FUN = [0x22, 0, 1, 1, 0]
+    SENSER1 = [0x60, 0, 16, null, null]
 
 
 class FlxiE2ApiBase(_ServoApiBase):
@@ -199,7 +207,6 @@ class FlxiE2ApiBase(_ServoApiBase):
             mode (int): operating mode of the arm
                 1: Position mode
                 3: Current mode
-                4: Mixed mode
         """
         return self._get_motion_mode()
 
@@ -211,7 +218,6 @@ class FlxiE2ApiBase(_ServoApiBase):
             mode (int): operating mode of the arm
                 1: Position mode
                 3: Current mode
-                4: Mixed mode
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -237,6 +243,25 @@ class FlxiE2ApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._set_motion_enable(enable)
+
+    def set_unlock_function(self, fun):
+        """When the position of the manipulator grasping tensioning reaches the limit position, 
+        and then the mechanical card main cause the motor can not rotate normally, 
+        you can use this function to try to unlock, so that the hand movement to the normal position.
+
+        Args:
+            fun (uint8_t): 
+                1 Unlock the manipulator stuck in the limit position
+                2 Unlock the manipulator clamp is too tight
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = [0]
+        txdata[0] = int(fun)
+        self._send(UTRC_RW.W, FLXIE_REG.UNLOCK_FUN, txdata)
+        ret, bus_rmsg = self._pend(UTRC_RW.W, FLXIE_REG.UNLOCK_FUN)
+        return ret
 
     def get_temp_driver(self):
         """Get drive temperature
@@ -316,47 +341,27 @@ class FlxiE2ApiBase(_ServoApiBase):
         """
         return self._get_pos_current()
 
-    def get_pos_limit_min(self):
-        """Get the minimum limit threshold of the position in position mode
+    def get_pos_limit_diff(self):
+        """Get the maximum position following error threshold in position mode
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): position [rad]
+            pos (float): position [mm]
         """
-        return self._get_pos_limit_min()
+        return self._get_pos_limit_diff()
 
-    def set_pos_limit_min(self, pos):
-        """Set the minimum limit threshold of the position in position mode, 
+    def set_pos_limit_diff(self, pos):
+        """Set the maximum position following error threshold in position mode,
+        the tracking error alarm threshold of the current position and the target position,
         other modes such as speed mode and current mode do not work
 
         Args:
-            pos (float): position [rad]
+            pos (float): position [mm]
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        return self._set_pos_limit_min(pos)
-
-    def get_pos_limit_max(self):
-        """Get the maximum limit threshold of the position in position mode
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): position [rad]
-        """
-        return self._get_pos_limit_max()
-
-    def set_pos_limit_max(self, pos):
-        """Set the maximum limit threshold of the position in position mode, 
-        other modes such as speed mode and current mode do not work
-
-        Args:
-            pos (float): position [rad]
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-        """
-        return self._set_pos_limit_max(pos)
+        return self._set_pos_limit_diff(pos)
 
     def get_pos_pidp(self):
         """Get position loop control parameter P
@@ -399,6 +404,30 @@ class FlxiE2ApiBase(_ServoApiBase):
         """
         return self._set_pos_smooth_cyc(cyc)
 
+    def get_pos_adrc_param(self, i):
+        """Get speed loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be get
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            value (float): parameter Adrc
+        """
+        return self._get_pos_adrc_param(i)
+
+    def set_pos_adrc_param(self, i, param):
+        """Set position loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be set
+            param ([type]): [description]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self._set_pos_adrc_param(i, param)
+
     def pos_cal_zero(self):
         """Set current position as mechanical zero, after the operation, the user needs to restart the device
 
@@ -406,6 +435,53 @@ class FlxiE2ApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._pos_cal_zero()
+
+############################################################
+#                       Speed Api
+############################################################
+
+    def get_vel_limit_min(self):
+        """Get the minimum limit of the speed in speed mode and position mode
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            vel (float): speed [rad/s]
+        """
+        return self._get_vel_limit_min()
+
+    def set_vel_limit_min(self, vel):
+        """Set the minimum limit of the speed in speed mode and position mode, 
+        other modes such as current mode do not work
+
+        Args:
+            vel (float): speed [rad/s]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self._set_vel_limit_min(vel)
+
+    def get_vel_limit_max(self):
+        """Get maximum limit of the speed in speed mode and position mode
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            vel (float): speed [rad/s]
+        """
+        return self._get_vel_limit_max()
+
+    def set_vel_limit_max(self, vel):
+        """Set maximum limit of the speed in speed mode and position mode, 
+        other modes such as current mode do not work
+
+        Args:
+            vel (float): speed [rad/s]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self._set_vel_limit_max(vel)
+
 
 ############################################################
 #                       Current Api
@@ -540,3 +616,39 @@ class FlxiE2ApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._set_tau_smooth_cyc(value)
+
+    def get_tau_adrc_param(self, i):
+        """Get current loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be get
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            value (float): parameter Adrc
+        """
+        return self._get_tau_adrc_param(i)
+
+    def set_tau_adrc_param(self, i, param):
+        """Set current loop ADRC parameters
+
+        Args:
+            i ([int]): Adrc has many parameters, which parameter needs to be set
+            param ([type]): [description]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self._set_tau_adrc_param(i, param)
+
+    def get_senser(self):
+        """Get the values of sensors, including six-axis IMU sensors
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): [reserved, ROLL, PITCH, YAW]
+        """
+        self._send(UTRC_RW.R, FLXIE_REG.SENSER1, None)
+        ret, bus_rmsg = self._pend(UTRC_RW.R, FLXIE_REG.SENSER1)
+        senser = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:16], 4)
+        return ret, senser

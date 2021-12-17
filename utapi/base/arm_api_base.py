@@ -387,6 +387,7 @@ class _ArmApiBase:
 
     def moveto_cartesian_line(self, mvpose, mvvelo, mvacc, mvtime):
         """Move to position (linear in tool-space)
+        Take a look at application example Demo04
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
@@ -412,6 +413,7 @@ class _ArmApiBase:
     def moveto_cartesian_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
         """Blend circular (in tool-space) and move linear (in tool-space) to position.
         Accelerates to and moves with constant tool speed v.
+        Take a look at application example Demo05
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
@@ -455,6 +457,7 @@ class _ArmApiBase:
         """Move to position (circular in tool-space).
         TCP moves on the circular arc segment from current pose, through pose1 to pose2.
         Accelerates to and moves with constant tool speed mvvelo.
+        Take a look at application example Demo06
 
         Args:
             pose1 (list): path cartesian position 1 [mm mm mm rad rad rad]
@@ -500,6 +503,7 @@ class _ArmApiBase:
 
     def moveto_joint_p2p(self, mvjoint, mvvelo, mvacc, mvtime):
         """Move to position (linear in joint-space) When using this command, the robot must be at a standstill
+            Take a look at application example Demo03
 
         Args:
             mvjoint (list): target joint positions [rad]
@@ -539,7 +543,7 @@ class _ArmApiBase:
 
     def moveto_home_p2p(self, mvvelo, mvacc, mvtime):
         """Move to position of home (linear in joint-space) When using this command, the robot must be at a standstill
-
+            
         Args:
             mvvelo (float): joint speed of leading axis [rad/s]
             mvacc (float): joint acceleration of leading axis [rad/sˆ2]
@@ -558,8 +562,7 @@ class _ArmApiBase:
         return ret
 
     def moveto_servoj(self, mvjoint, mvvelo, mvacc, mvtime):
-        """Servo to position (linear in joint-space)
-        Servo function used for online control of the robot
+        """NOT public in current version
 
         Args:
             mvjoint (list): joint positions [rad]
@@ -582,6 +585,17 @@ class _ArmApiBase:
         return ret
 
     def moveto_servo_joint(self, frames_num, mvjoint, mvtime):
+        """Move to position (linear in joint-space) When using this command,And specify the time to execute to the target location
+            Take a look at application example Demo08
+
+        Args:
+            frames_num (int32_t): Number of locations, up to three
+            mvjoint (list): joint positions [rad],That's equal to the number of joints times the number of frames
+            mvtime (list): The time to move to the target is specified in as many frames as possible [seconds]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
         data_len = frames_num * (self.__AXIS + 1)
         txdata = [0] * data_len
 
@@ -596,7 +610,6 @@ class _ArmApiBase:
         self.reg.MOVES_JOINT[3] = (data_len + 1) * 4
         self.__send(UTRC_RW.W, self.reg.MOVES_JOINT, datas)
         ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVES_JOINT)
-
         return ret
 
     def move_sleep(self, time):
@@ -897,7 +910,8 @@ class _ArmApiBase:
         return ret, pose
 
     def get_tcp_actual_pos(self):
-        """Get the current measured tool pose
+        """NOT public in current version
+        Get the current measured tool pose
         Get the 6d pose representing the tool position and orientation specified in the base frame.
         The calculation of this pose is based on the actual robot encoder readings.
 
@@ -924,7 +938,8 @@ class _ArmApiBase:
         return ret, joints
 
     def get_joint_actual_pos(self):
-        """Get the actual angular positions of all joints
+        """NOT public in current version
+        Get the actual angular positions of all joints
         The angular actual positions are expressed in radians and returned as a vector of length N.
         Note that the output might differ from the output of get target joint positions(),
         especially during cceleration and heavy loads.
@@ -936,7 +951,8 @@ class _ArmApiBase:
         return 0, 0
 
     def get_ik(self, pose, qnear=None):
-        """Inverse kinematic transformation (tool space -> joint space).
+        """NOT public in current version
+        Inverse kinematic transformation (tool space -> joint space).
         If qnear is defined, the solution closest to qnear is returned.
         Otherwise, the solution closest to the current joint positions is returned.
 
@@ -951,7 +967,8 @@ class _ArmApiBase:
         return 0, 0
 
     def get_fk(self, joints):
-        """Forward kinematic transformation (joint space -> tool space).
+        """NOT public in current version
+        Forward kinematic transformation (joint space -> tool space).
 
         Args:
             joints (list): joint positions [rad]
@@ -963,7 +980,8 @@ class _ArmApiBase:
         return 0, 0
 
     def is_joint_limit(self, joint):
-        """Checks if the given joints is reachable and within the current safety limits of the robot.
+        """NOT public in current version
+        Checks if the given joints is reachable and within the current safety limits of the robot.
 
         Args:
             joints (list): joint positions [rad]
@@ -975,7 +993,8 @@ class _ArmApiBase:
         return 0, 1
 
     def is_tcp_limit(self, pose):
-        """Checks if the given pose is reachable and within the current safety limits of the robot.
+        """NOT public in current version
+        Checks if the given pose is reachable and within the current safety limits of the robot.
         This check considers joint limits (if the target pose is specified as joint positions), safety planes limits,
         If a solution is found when applying the inverse kinematics to the given target TCP pose, this pose is considered reachable.
 
@@ -1417,6 +1436,22 @@ class _ArmApiBase:
             return ret
 
     def get_utrc_u8float_now(self, line, id, reg, num):
+        """Read the float list register of the device through the utrc protocol
+        Communicate immediately, do not wait for the execution of other instructions in the queue
+        Protocol details refer to [utrc_communication_protocol]
+
+        Args:
+            line (int): RS485 line
+                2: RS485 at the end of the robotic arm
+                3: RS485 for control box
+            id (int): ID number of the device [1-125]
+            reg (int): Device register address [0x01-0x7F]
+            num ([uint8_t]): The number of values in a register
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            value ([float]): Data
+        """
 
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1434,6 +1469,22 @@ class _ArmApiBase:
             return ret, ret
 
     def set_utrc_u8float_now(self, line, id, reg, num, value):
+        """Write the float list register of the device through the utrc protocol
+        Communicate immediately, do not wait for the execution of other instructions in the queue
+        Protocol details refer to [utrc_communication_protocol]
+
+        Args:
+            line (int): RS485 line
+                2: RS485 at the end of the robotic arm
+                3: RS485 for control box
+            id (int): ID number of the device [1-125]
+            reg (int): Device register address [0x01-0x7F]
+            num ([uint8_t]): The number of values in a register
+            value ([type]): Data
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
 
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1449,7 +1500,56 @@ class _ArmApiBase:
         else:
             return ret
 
-    def get_gpio_in(self, line, id):
+    def get_utrc_nfloat_now(self, line, id, reg, len):
+        """Read the floats register of the device through the utrc protocol
+        Communicate immediately, do not wait for the execution of other instructions in the queue
+        Protocol details refer to [utrc_communication_protocol]
+
+        Args:
+            line (int): RS485 line
+                2: RS485 at the end of the robotic arm
+                3: RS485 for control box
+            id (int): ID number of the device [1-125]
+            reg (int): Device register address [0x01-0x7F]
+
+        Returns:
+            value[0] (int): Function execution result code, refer to appendix for code meaning
+            value[1] (list): Data
+        """
+        txdata = bytes([line])
+        txdata += bytes([id])
+        txdata += bytes([reg])
+        txdata += bytes([len])
+        self.reg.UTRC_FP32N_NOW[2] = len * 4 + 4
+
+        self.__send(UTRC_RW.R, self.reg.UTRC_FP32N_NOW, txdata)
+        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_FP32N_NOW)
+        rx_data = hex_data.bytes_to_fp32_big(utrc_rmsg.data, len + 1)
+        if ret == 0 or ret == UTRC_RX_ERROR.STATE:
+            return rx_data[0], rx_data[1:len + 1]
+        else:
+            return ret, ret
+
+    ############################################################
+    #                       GPIO Api
+    ############################################################
+    def __get_gpio_in(self, line, id):
+        """Gets the input value for the GPIO module
+
+        Args:
+            line (int): RS485 line
+                2: RS485 at the end of the robotic arm
+                3: RS485 for control box
+            id (int): ID number of the device [1-125]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: Functional status
+                data[1]: digit I/O input
+                data[2]: dac num
+                data[2-N]: dac value
+        """
 
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1468,33 +1568,23 @@ class _ArmApiBase:
         else:
             return ret, ret
 
-    def get_tgpio_in(self):
-        """end-tool gpio
+    def __get_gpio_ou(self, line, id):
+        """Gets the output value of the GPIO module
+
+        Args:
+            line (int): RS485 line
+                2: RS485 at the end of the robotic arm
+                3: RS485 for control box
+            id (int): ID number of the device [1-125]
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
             data (list): Data received
-                data[0]: controller function
-                data[1]: digit I/O input
-                data[2]: dac num
-                data[2-N]: dac value
+                data[0]: Functional status
+                data[1]: digit I/O output
+                data[2]: adc num
+                data[2-N]: adc value
         """
-        return self.get_gpio_in(2, 1)
-
-    def get_cgpio_in(self):
-        """controller gpio
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
-                data[0]: controller function
-                data[1]: digit I/O input
-                data[2]: dac num
-                data[2-N]: dac value
-        """
-        return self.get_gpio_in(3, 1)
-
-    def get_gpio_ou(self, line, id):
 
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1513,8 +1603,24 @@ class _ArmApiBase:
         else:
             return ret, ret
 
+    ############################################################
+    #                    End-Tool GPIO Api
+    ############################################################
+    def get_tgpio_in(self):
+        """Gets the input value of the end-tool GPIO module
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: controller function
+                data[1]: digit I/O input
+                data[2]: dac num
+                data[2-N]: dac value
+        """
+        return self.__get_gpio_in(RS485_LINE.TGPIO, 1)
+
     def get_tgpio_out(self):
-        """end-tool gpio
+        """Gets the output value of the end-tool GPIO module
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -1524,75 +1630,31 @@ class _ArmApiBase:
                 data[2]: adc num
                 data[2-N]: adc value
         """
-        return self.get_gpio_ou(2, 1)
-
-    def get_cgpio_out(self):
-        """controller gpio
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
-                data[0]: gpio function
-                data[1]: digit I/O output
-                data[2]: adc num
-                data[2-N]: adc value
-        """
-        return self.get_gpio_ou(3, 1)
+        return self.__get_gpio_ou(RS485_LINE.TGPIO, 1)
 
     def set_tgpio_digit_out(self, value):
-        """end-tool gpio
-
+        """Set the end-tool GPIO module to output digital I/O
+        The higher 16 bits are the I/O to be set, and the lower 16 bits are the value to be set
+        
         Args:
             value (uint32_t): Digital I/O output value
+                For example: 0x00010001 => Set GPIO 1 to high
+                For example: 0x00030003 => Set GPIO 1 and 2 to high
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        return self.set_utrc_int32_now(2, 1, 0x13, int(value))
-
-    def set_cgpio_digit_out(self, value):
-        """controller gpio
-
-        Args:
-            value (uint32_t): Digital I/O input value
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-        """
-        return self.set_utrc_int32_now(3, 1, 0x13, int(value))
-
-    def get_cgpio_uuid(self):
-        ret, data = self.get_utrc_int8n_now(3, 1, 0x01, 12)
-        print(ret)
-        print(data)
-        uuid = data[0:12]
-        string = ""
-        for i in uuid:
-            string += "{0:0>2}".format(str(hex(i))[2:])
-        return ret, string
-
-    def get_cgpio_sw_version(self):
-        ret, data = self.get_utrc_int8n_now(3, 1, 0x02, 12)
-        version = data[0:12]
-        print("get_cgpio_sw_version: ")
-        print(version)
-        version = "".join([chr(x) for x in version])
-        print(version)
-        return ret, version
-
-    def get_cgpio_hw_version(self):
-        ret, data = self.get_utrc_int8n_now(3, 1, 0x03, 12)
-        version = data[0:12]
-        print("get_cgpio_hw_version: ")
-        print(version)
-        string = ""
-        for i in version:
-            string += "{0:0>2}".format(str(hex(i))[2:])
-        print(string)
-        return ret, string
+        return self.set_utrc_int32_now(RS485_LINE.TGPIO, 1, 0x13, int(value))
 
     def get_tgpio_uuid(self):
-        ret, data = self.get_utrc_int8n_now(2, 1, 0x01, 12)
+        """Get the UUID of the end-tool GPIO module
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
+                           12-bit string
+        """
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, 1, 0x01, 12)
         print(ret)
         print(data)
         uuid = data[0:12]
@@ -1602,7 +1664,13 @@ class _ArmApiBase:
         return ret, string
 
     def get_tgpio_sw_version(self):
-        ret, data = self.get_utrc_int8n_now(2, 1, 0x02, 12)
+        """Get the software version of the end-tool GPIO module
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            version (string): Software version, 12-bit string
+        """
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, 1, 0x02, 12)
         version = data[0:12]
         print("get_tgpio_sw_version: ")
         print(version)
@@ -1611,7 +1679,13 @@ class _ArmApiBase:
         return ret, version
 
     def get_tgpio_hw_version(self):
-        ret, data = self.get_utrc_int8n_now(2, 1, 0x03, 12)
+        """Get the hardware version of the end-tool GPIO module
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            version (string): Hardware version, 12-bit string
+        """
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, 1, 0x03, 12)
         version = data[0:12]
         print("get_tgpio_hw_version: ")
         print(version)
@@ -1621,18 +1695,94 @@ class _ArmApiBase:
         print(string)
         return ret, string
 
-    def get_friction(self, axis):
-        txdata = bytes([self.reg.FRICTION[0]])
-        txdata += bytes([int(axis)])
-        self.__send(UTRC_RW.R, self.reg.FRICTION, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.FRICTION)
-        fri = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
-        return ret, fri
+    ############################################################
+    #                    Controller GPIO Api
+    ############################################################
+    def get_cgpio_in(self):
+        """Gets the input value of the controller GPIO module
 
-    def set_friction(self, axis, fri):
-        txdata = bytes([self.reg.FRICTION[0]])
-        txdata += bytes([int(axis)])
-        txdata += hex_data.fp32_to_bytes_big(fri, 4)
-        self.__send(UTRC_RW.W, self.reg.FRICTION, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.FRICTION)
-        return ret
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: controller function
+                data[1]: digit I/O input
+                data[2]: dac num
+                data[2-N]: dac value
+        """
+        return self.__get_gpio_in(RS485_LINE.CGPIO, 1)
+
+    def get_cgpio_out(self):
+        """Gets the output value of the controller GPIO module
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            data (list): Data received
+                data[0]: gpio function
+                data[1]: digit I/O output
+                data[2]: adc num
+                data[2-N]: adc value
+        """
+        return self.__get_gpio_ou(RS485_LINE.CGPIO, 1)
+
+    def set_cgpio_digit_out(self, value):
+        """Set the controller GPIO module to output digital I/O
+        The higher 16 bits are the I/O to be set, and the lower 16 bits are the value to be set
+        
+        Args:
+            value (uint32_t): Digital I/O output value
+                For example: 0x00010001 => Set GPIO 1 to high
+                For example: 0x00030003 => Set GPIO 1 and 2 to high
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self.set_utrc_int32_now(RS485_LINE.CGPIO, 1, 0x13, int(value))
+
+    def get_cgpio_uuid(self):
+        """Get the UUID of the NTRO Controller
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
+                           12-bit string
+        """
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, 1, GPIO_REG.UUID[0], GPIO_REG.UUID[2])
+        print(ret)
+        print(data)
+        uuid = data[0:12]
+        string = ""
+        for i in uuid:
+            string += "{0:0>2}".format(str(hex(i))[2:])
+        return ret, string
+
+    def get_cgpio_sw_version(self):
+        """Get the software version of the NTRO Controller
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            version (string): Software version, 12-bit string
+        """
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, 1, GPIO_REG.SW_VERSION[0], GPIO_REG.SW_VERSION[2])
+        version = data[0:12]
+        print("get_cgpio_sw_version: ")
+        print(version)
+        version = "".join([chr(x) for x in version])
+        print(version)
+        return ret, version
+
+    def get_cgpio_hw_version(self):
+        """Get the hardware version of the NTRO Controller
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            version (string): Hardware version, 12-bit string
+        """
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, 1, GPIO_REG.HW_VERSION[0], GPIO_REG.HW_VERSION[2])
+        version = data[0:12]
+        print("get_cgpio_hw_version: ")
+        print(version)
+        string = ""
+        for i in version:
+            string += "{0:0>2}".format(str(hex(i))[2:])
+        print(string)
+        return ret, string
