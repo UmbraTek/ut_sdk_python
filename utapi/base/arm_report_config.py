@@ -57,7 +57,7 @@ class ArmReportConfig(threading.Thread):
     def flush_data(self, rx_data):
         if len(rx_data) % 80 != 0:
             print("[UbotRConf] Error: rx_data len = %d" % len(rx_data))
-            self.__is_err = 1
+            # self.__is_err = 1
 
         k = (int)(len(rx_data) / 80) - 1
         k *= 80

@@ -81,17 +81,17 @@ class ArmReportStatus(threading.Thread):
     def flush_data(self, rx_data):
         if len(rx_data) % self.frame_len != 0:
             print("[UbotRStat] Error: rx_data len = %d" % len(rx_data))
-            self.__is_err = 1
+            # self.__is_err = 1
             return
 
         k = (int)(len(rx_data) / self.frame_len) - 1
         k *= self.frame_len
 
-        temp1 = struct.unpack("<HBBBIIBBH", rx_data[k : k + 17])
+        temp1 = struct.unpack("<HBBBIIBBH", rx_data[k:k + 17])
         axis = temp1[1]
         if self.axis != axis:
             print("[UbotRStat] Error: axis = %d %d" % (axis, self.axis))
-            self.__is_err = 1
+            # self.__is_err = 1
             return
         self.motion_status = temp1[2]
         self.motion_mode = temp1[3]
@@ -101,12 +101,13 @@ class ArmReportStatus(threading.Thread):
         self.war_code = temp1[7]
         self.cmd_num = temp1[8]
         for i in range(self.axis):
-            j1 = k + 17 + i * 4
+            j1 = k + i * 4 + 17
             j2 = j1 + self.axis * 4
-            j3 = j2 + self.axis * 4
-            self.joint[i] = struct.unpack("<f", rx_data[j1 : j1 + 4])
-            self.pose[i] = struct.unpack("<f", rx_data[j2 : j2 + 4])
-            self.tau[i] = struct.unpack("<f", rx_data[j3 : j3 + 4])
+            j3 = j2 + 6 * 4
+            self.joint[i] = struct.unpack("<f", rx_data[j1:j1 + 4])
+            if i < 6:
+                self.pose[i] = struct.unpack("<f", rx_data[j2:j2 + 4])
+            self.tau[i] = struct.unpack("<f", rx_data[j3:j3 + 4])
         self.__is_update = 1
         if self.irq_fun != 0:
             self.irq_fun.irq_run(self)

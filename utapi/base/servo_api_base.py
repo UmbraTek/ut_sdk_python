@@ -7,11 +7,13 @@
 from common.utrc import UTRC_RW
 from common import hex_data
 from base.servo_reg import SERVO_REG
+import threading
 
 
 class _ServoApiBase:
     def __init__(self, socket_fp, bus_client, tx_data):
         self.DB_FLG = "[AdraApiB] "
+        self.mutex = threading.Lock()
         self.socket_fp = socket_fp
         self.bus_client = bus_client
         self.tx_data = tx_data
@@ -62,466 +64,311 @@ class _ServoApiBase:
             data_rlen = cmd[4]
         return self.bus_client.pend(self.tx_data, data_rlen, timeout_s)
 
+    def __sendpend(self, rw, reg, tx_data):
+        self.mutex.acquire()
+        self._send(rw, reg, tx_data)
+        ret, utrc_rmsg = self._pend(rw, reg)
+        self.mutex.release()
+        return ret, utrc_rmsg
+
     def is_err(self):
         return self.__is_err
+
+    ############################################################
+    #                       Basic Function
+    ############################################################
+
+    def __get_reg_int8(self, reg, n=1, txdata=None):
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
+        if n == 1:
+            value = hex_data.bytes_to_int8(utrc_rmsg.data[0], n)
+        else:
+            value = hex_data.bytes_to_int8(utrc_rmsg.data[0:n], n)
+        return ret, value
+
+    def __set_reg_int8(self, reg, value, n=1):
+        txdata = hex_data.int8_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        return ret
+
+    def __set_reg_uint8(self, reg, value, n=1):
+        txdata = hex_data.uint8_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        return ret
+
+    def __get_reg_int32(self, reg, n=1, txdata=None):
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
+        value = hex_data.bytes_to_int32_big(utrc_rmsg.data, n)
+        return ret, value
+
+    def __set_reg_int32(self, reg, value, n=1):
+        txdata = hex_data.int32_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        return ret
+
+    def __get_reg_fp32(self, reg, n=1, txdata=None):
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
+        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data, n)
+        return ret, value
+
+    def __set_reg_fp32(self, reg, value, n=1):
+        datas = hex_data.fp32_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, datas)
+        return ret
 
     ############################################################
     #                       Basic Api
     ############################################################
 
     def _get_uuid(self):
-        self._send(UTRC_RW.R, SERVO_REG.UUID, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.UUID)
-        uuid = bus_rmsg.data[0:12]
+        ret, uuid = self.__get_reg_int8(SERVO_REG.UUID, 12)
         string = ""
         for i in uuid:
             string += "{0:0>2}".format(str(hex(i))[2:])
         return ret, string
 
     def _get_sw_version(self):
-        self._send(UTRC_RW.R, SERVO_REG.SW_VERSION, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.SW_VERSION)
-        version = bus_rmsg.data[0:12]
+        ret, version = self.__get_reg_int8(SERVO_REG.SW_VERSION, 12)
         version = "".join(chr(i) for i in version)
         return ret, version
 
     def _get_hw_version(self):
-        self._send(UTRC_RW.R, SERVO_REG.HW_VERSION, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.HW_VERSION)
-        version = bus_rmsg.data[0:12]
+        ret, version = self.__get_reg_int8(SERVO_REG.HW_VERSION, 12)
         string = ""
         for i in version:
             string += "{0:0>2}".format(str(hex(i))[2:])
         return ret, string
 
     def _get_multi_version(self):
-        self._send(UTRC_RW.R, SERVO_REG.MULTI_VERSION, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.MULTI_VERSION)
-        version = hex_data.bytes_to_int32_big(bus_rmsg.data[0:4])
+        ret, version = self.__get_reg_int32(SERVO_REG.MULTI_VERSION)
         version = "0000000000" + str(version)
         return ret, version[len(version) - 12:len(version)]
 
     def _get_mech_ratio(self):
-        self._send(UTRC_RW.R, SERVO_REG.MECH_RATIO, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.MECH_RATIO)
-        ratio = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, ratio
+        return self.__get_reg_fp32(SERVO_REG.MECH_RATIO)
 
     def _set_mech_ratio(self, ratio):
-        txdata = hex_data.fp32_to_bytes_big(ratio)
-        self._send(UTRC_RW.W, SERVO_REG.MECH_RATIO, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.MECH_RATIO)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.MECH_RATIO, ratio)
 
     def _set_com_id(self, id):
-        txdata = [0]
-        txdata[0] = int(id)
-        self._send(UTRC_RW.W, SERVO_REG.COM_ID, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.COM_ID)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.COM_ID, int(id))
 
     def _set_com_baud(self, baud):
-        txdata = hex_data.int32_to_bytes_big(int(baud))
-        self._send(UTRC_RW.W, SERVO_REG.COM_BAUD, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.COM_BAUD)
-        return ret
+        return self.__set_reg_int32(SERVO_REG.COM_BAUD, int(baud))
 
     def _reset_err(self):
-        txdata = [0]
-        txdata[0] = SERVO_REG.RESET_ERR[0]
-        self._send(UTRC_RW.W, SERVO_REG.RESET_ERR, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.RESET_ERR)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.RESET_ERR, SERVO_REG.RESET_ERR[0])
 
     def _restart_driver(self):
-        txdata = [0]
-        txdata[0] = SERVO_REG.REBOOT_DRIVER[0]
-        self._send(UTRC_RW.W, SERVO_REG.REBOOT_DRIVER, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.REBOOT_DRIVER)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.REBOOT_DRIVER, SERVO_REG.REBOOT_DRIVER[0])
 
     def _erase_parm(self):
-        txdata = [0]
-        txdata[0] = SERVO_REG.ERASE_PARM[0]
-        self._send(UTRC_RW.W, SERVO_REG.ERASE_PARM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.ERASE_PARM, 3)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.ERASE_PARM, SERVO_REG.ERASE_PARM[0])
 
     def _saved_parm(self):
-        txdata = [0]
-        txdata[0] = SERVO_REG.SAVED_PARM[0]
-        self._send(UTRC_RW.W, SERVO_REG.SAVED_PARM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.SAVED_PARM, 3)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.SAVED_PARM, SERVO_REG.SAVED_PARM[0])
 
     ############################################################
-    #                       Ectension Api
+    #                       Extension Api
     ############################################################
 
     def _get_elec_ratio(self):
-        self._send(UTRC_RW.R, SERVO_REG.ELEC_RATIO, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.ELEC_RATIO)
-        ratio = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, ratio
+        return self.__get_reg_fp32(SERVO_REG.ELEC_RATIO)
 
     def _set_elec_ratio(self, ratio):
-        txdata = hex_data.fp32_to_bytes_big(ratio)
-        self._send(UTRC_RW.W, SERVO_REG.ELEC_RATIO, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.ELEC_RATIO)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.ELEC_RATIO, ratio)
 
     def _get_motion_dir(self):
-        self._send(UTRC_RW.R, SERVO_REG.MOTION_DIR, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.MOTION_DIR)
-        dir = hex_data.bytes_to_int8(bus_rmsg.data[0])
-        return ret, dir
+        return self.__get_reg_int8(SERVO_REG.MOTION_DIR)
 
     def _set_motion_dir(self, dir):
-        txdata = [0]
-        txdata[0] = int(dir)
-        self._send(UTRC_RW.W, SERVO_REG.MOTION_DIR, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.MOTION_DIR)
-        return ret
+        return self.__set_reg_int8(SERVO_REG.MOTION_DIR, int(dir))
 
     def _get_temp_limit(self):
-        self._send(UTRC_RW.R, SERVO_REG.TEMP_LIMIT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TEMP_LIMIT)
-        min = hex_data.bytes_to_int8(bus_rmsg.data[0])
-        max = hex_data.bytes_to_int8(bus_rmsg.data[1])
-        return ret, min, max
+        ret, value = self.__get_reg_int8(SERVO_REG.TEMP_LIMIT, 2)
+        return ret, value[0], value[1]
 
     def _set_temp_limit(self, min, max):
-        txdata = hex_data.int8_to_bytes_big(int(min))
-        txdata += hex_data.int8_to_bytes_big(int(max))
-        self._send(UTRC_RW.W, SERVO_REG.TEMP_LIMIT, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TEMP_LIMIT)
-        return ret
+        txdata = [int(min), int(max)]
+        return self.__set_reg_int8(SERVO_REG.TEMP_LIMIT, txdata, 2)
 
     def _get_volt_limit(self):
-        self._send(UTRC_RW.R, SERVO_REG.VOLT_LIMIT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VOLT_LIMIT)
-        min = hex_data.bytes_to_int8(bus_rmsg.data[0])
-        max = hex_data.bytes_to_int8(bus_rmsg.data[1])
-        return ret, min, max
+        ret, value = self.__get_reg_int8(SERVO_REG.VOLT_LIMIT, 2)
+        return ret, value[0], value[1]
 
     def _set_volt_limit(self, min, max):
-        txdata = hex_data.int8_to_bytes_big(int(min))
-        txdata += hex_data.int8_to_bytes_big(int(max))
-        self._send(UTRC_RW.W, SERVO_REG.VOLT_LIMIT, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VOLT_LIMIT)
-        return ret
+        txdata = [int(min), int(max)]
+        return self.__set_reg_int8(SERVO_REG.VOLT_LIMIT, txdata, 2)
 
     def _get_curr_limit(self):
-        self._send(UTRC_RW.R, SERVO_REG.CURR_LIMIT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.CURR_LIMIT)
-        value = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, value
+        return self.__get_reg_fp32(SERVO_REG.CURR_LIMIT)
 
     def _set_curr_limit(self, value):
-        txdata = hex_data.fp32_to_bytes_big(value)
-        self._send(UTRC_RW.W, SERVO_REG.CURR_LIMIT, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.CURR_LIMIT)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.CURR_LIMIT, value)
 
     def _get_brake_pwm(self):
-        self._send(UTRC_RW.R, SERVO_REG.BRAKE_PWM, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.BRAKE_PWM)
-        brake_pwm = hex_data.bytes_to_int8(bus_rmsg.data[0])
-        return ret, brake_pwm
+        return self.__get_reg_int8(SERVO_REG.SERVO_REG, )
 
     def _set_brake_pwm(self, brake_pwm):
-        txdata = [0]
-        txdata[0] = int(brake_pwm)
-        self._send(UTRC_RW.W, SERVO_REG.BRAKE_PWM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.BRAKE_PWM)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.SERVO_REG, int(brake_pwm), 1)
 
     ############################################################
     #                       Control Api
     ############################################################
 
     def _get_motion_mode(self):
-        self._send(UTRC_RW.R, SERVO_REG.MOTION_MDOE, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.MOTION_MDOE)
-        return ret, bus_rmsg.data[0]
+        return self.__get_reg_int8(SERVO_REG.MOTION_MDOE)
 
     def _set_motion_mode(self, mode):
-        txdata = [0]
-        txdata[0] = int(mode)
-        self._send(UTRC_RW.W, SERVO_REG.MOTION_MDOE, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.MOTION_MDOE)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.MOTION_MDOE, int(mode))
 
     def _get_motion_enable(self):
-        self._send(UTRC_RW.R, SERVO_REG.MOTION_ENABLE, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.MOTION_ENABLE)
-        return ret, bus_rmsg.data[0]
+        return self.__get_reg_int8(SERVO_REG.MOTION_ENABLE)
 
     def _set_motion_enable(self, enable):
-        txdata = [0]
-        txdata[0] = int(enable)
-        self._send(UTRC_RW.W, SERVO_REG.MOTION_ENABLE, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.MOTION_ENABLE)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.MOTION_ENABLE, int(enable))
 
     def _get_brake_enable(self):
-        self._send(UTRC_RW.R, SERVO_REG.BRAKE_ENABLE, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.BRAKE_ENABLE)
-        return ret, bus_rmsg.data[0]
+        return self.__get_reg_int8(SERVO_REG.BRAKE_ENABLE)
 
     def _set_brake_enable(self, able):
-        txdata = [0]
-        txdata[0] = int(able)
-        self._send(UTRC_RW.W, SERVO_REG.BRAKE_ENABLE, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.BRAKE_ENABLE)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.BRAKE_ENABLE, int(able))
 
     def _get_temp_driver(self):
-        self._send(UTRC_RW.R, SERVO_REG.TEMP_DRIVER, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TEMP_DRIVER)
-        temp = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, temp
+        return self.__get_reg_fp32(SERVO_REG.TEMP_DRIVER)
 
     def _get_temp_motor(self):
-        self._send(UTRC_RW.R, SERVO_REG.TEMP_MOTOR, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TEMP_MOTOR)
-        temp = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, temp
+        return self.__get_reg_fp32(SERVO_REG.TEMP_MOTOR)
 
     def _get_bus_volt(self):
-        self._send(UTRC_RW.R, SERVO_REG.BUS_VOLT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.BUS_VOLT)
-        volt = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, volt
+        return self.__get_reg_fp32(SERVO_REG.BUS_VOLT)
 
     def _get_bus_curr(self):
-        self._send(UTRC_RW.R, SERVO_REG.BUS_CURR, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.BUS_CURR)
-        current = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, current
+        return self.__get_reg_fp32(SERVO_REG.BUS_CURR)
 
     def _get_multi_volt(self):
-        self._send(UTRC_RW.R, SERVO_REG.MULTI_VOLT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.MULTI_VOLT)
-        volt = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, volt
+        return self.__get_reg_fp32(SERVO_REG.MULTI_VOLT)
 
     def _get_error_code(self):
-        self._send(UTRC_RW.R, SERVO_REG.ERROR_CODE, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.ERROR_CODE)
-        return ret, hex_data.bytes_to_int8(bus_rmsg.data[0])
+        return self.__get_reg_int8(SERVO_REG.ERROR_CODE)
 
     ############################################################
     #                       Position Api
     ############################################################
 
     def _get_pos_target(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_TARGET, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_TARGET)
-        pos = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pos
+        return self.__get_reg_fp32(SERVO_REG.POS_TARGET)
 
     def _set_pos_target(self, pos):
-        txdata = hex_data.fp32_to_bytes_big(pos)
-        self._send(UTRC_RW.W, SERVO_REG.POS_TARGET, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_TARGET)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.POS_TARGET, pos)
 
     def _get_pos_current(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_CURRENT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_CURRENT)
-        pos = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pos
+        return self.__get_reg_fp32(SERVO_REG.POS_CURRENT)
 
     def _get_pos_limit_min(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_LIMIT_MIN, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_LIMIT_MIN)
-        pos = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pos
+        return self.__get_reg_fp32(SERVO_REG.POS_LIMIT_MIN)
 
     def _set_pos_limit_min(self, pos):
-        txdata = hex_data.fp32_to_bytes_big(pos)
-        self._send(UTRC_RW.W, SERVO_REG.POS_LIMIT_MIN, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_LIMIT_MIN)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.POS_LIMIT_MIN, pos)
 
     def _get_pos_limit_max(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_LIMIT_MAX, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_LIMIT_MAX)
-        pos = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pos
+        return self.__get_reg_fp32(SERVO_REG.POS_LIMIT_MAX)
 
     def _set_pos_limit_max(self, pos):
-        txdata = hex_data.fp32_to_bytes_big(pos)
-        self._send(UTRC_RW.W, SERVO_REG.POS_LIMIT_MAX, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_LIMIT_MAX)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.POS_LIMIT_MAX, pos)
 
     def _get_pos_limit_diff(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_LIMIT_DIFF, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_LIMIT_DIFF)
-        pos = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pos
+        return self.__get_reg_fp32(SERVO_REG.POS_LIMIT_DIFF)
 
     def _set_pos_limit_diff(self, pos):
-        txdata = hex_data.fp32_to_bytes_big(pos)
-        self._send(UTRC_RW.W, SERVO_REG.POS_LIMIT_DIFF, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_LIMIT_DIFF)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.POS_LIMIT_DIFF, pos)
 
     def _get_pos_pidp(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_PIDP, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_PIDP)
-        p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, p
+        return self.__get_reg_fp32(SERVO_REG.POS_PIDP)
 
     def _set_pos_pidp(self, p):
-        txdata = hex_data.fp32_to_bytes_big(p)
-        self._send(UTRC_RW.W, SERVO_REG.POS_PIDP, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_PIDP)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.POS_PIDP, p)
 
     def _get_pos_smooth_cyc(self):
-        self._send(UTRC_RW.R, SERVO_REG.POS_SMOOTH_CYC, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_SMOOTH_CYC)
-        return ret, bus_rmsg.data[0]
+        return self.__get_reg_int8(SERVO_REG.POS_SMOOTH_CYC)
 
     def _set_pos_smooth_cyc(self, cyc):
-        txdata = [0]
-        txdata[0] = int(cyc)
-        self._send(UTRC_RW.W, SERVO_REG.POS_SMOOTH_CYC, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_SMOOTH_CYC)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.POS_SMOOTH_CYC, int(cyc))
 
     def _get_pos_adrc_param(self, i):
-        txdata = [0]
-        txdata[0] = i
-        self._send(UTRC_RW.R, SERVO_REG.POS_ADRC_PARAM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.POS_ADRC_PARAM)
+        txdata = bytes([int(i)])
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.POS_ADRC_PARAM, txdata)
         p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
         return ret, p
 
     def _set_pos_adrc_param(self, i, param):
         txdata = bytes([int(i)])
         txdata += hex_data.fp32_to_bytes_big(float(param))
-        self._send(UTRC_RW.W, SERVO_REG.POS_ADRC_PARAM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_ADRC_PARAM)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.POS_ADRC_PARAM, txdata)
         return ret
 
     def _pos_cal_zero(self):
-        txdata = [0]
-        txdata[0] = SERVO_REG.POS_CAL_ZERO[0]
-        self._send(UTRC_RW.W, SERVO_REG.POS_CAL_ZERO, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.POS_CAL_ZERO)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.POS_CAL_ZERO, SERVO_REG.POS_CAL_ZERO[0])
 
     ############################################################
     #                       Speed Api
     ############################################################
 
     def _get_vel_target(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_TARGET, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_TARGET)
-        vel = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, vel
+        return self.__get_reg_fp32(SERVO_REG.VEL_TARGET)
 
     def _set_vel_target(self, vel):
-        txdata = hex_data.fp32_to_bytes_big(vel)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_TARGET, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_TARGET)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.VEL_TARGET, vel)
 
     def _get_vel_current(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_CURRENT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_CURRENT)
-        vel = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, vel
+        return self.__get_reg_fp32(SERVO_REG.VEL_CURRENT)
 
     def _get_vel_limit_min(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_LIMIT_MIN, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_LIMIT_MIN)
-        vel = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, vel
+        return self.__get_reg_fp32(SERVO_REG.VEL_LIMIT_MIN)
 
     def _set_vel_limit_min(self, vel):
-        txdata = hex_data.fp32_to_bytes_big(vel)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_LIMIT_MIN, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_LIMIT_MIN)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.VEL_LIMIT_MIN, vel)
 
     def _get_vel_limit_max(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_LIMIT_MAX, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_LIMIT_MAX)
-        vel = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, vel
+        return self.__get_reg_fp32(SERVO_REG.VEL_LIMIT_MAX)
 
     def _set_vel_limit_max(self, vel):
-        txdata = hex_data.fp32_to_bytes_big(vel)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_LIMIT_MAX, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_LIMIT_MAX)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.VEL_LIMIT_MAX, vel)
 
     def _get_vel_limit_diff(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_LIMIT_DIFF, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_LIMIT_DIFF)
-        vel = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, vel
+        return self.__get_reg_fp32(SERVO_REG.VEL_LIMIT_DIFF)
 
     def _set_vel_limit_diff(self, vel):
-        txdata = hex_data.fp32_to_bytes_big(vel)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_LIMIT_DIFF, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_LIMIT_DIFF)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.VEL_LIMIT_DIFF, vel)
 
     def _get_vel_pidp(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_PIDP, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_PIDP)
-        p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, p
+        return self.__get_reg_fp32(SERVO_REG.VEL_PIDP)
 
     def _set_vel_pidp(self, p):
-        txdata = hex_data.fp32_to_bytes_big(p)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_PIDP, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_PIDP)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.VEL_PIDP, p)
 
     def _get_vel_pidi(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_PIDI, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_PIDI)
-        pid_i = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pid_i
+        return self.__get_reg_fp32(SERVO_REG.VEL_PIDI)
 
-    def _set_vel_pidi(self, pid_i):
-        txdata = hex_data.fp32_to_bytes_big(pid_i)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_PIDI, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_PIDI)
-        return ret
+    def _set_vel_pidi(self, i):
+        return self.__set_reg_fp32(SERVO_REG.VEL_PIDI, i)
 
     def _get_vel_smooth_cyc(self):
-        self._send(UTRC_RW.R, SERVO_REG.VEL_SMOOTH_CYC, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_SMOOTH_CYC)
-        return ret, bus_rmsg.data[0]
+        return self.__get_reg_int8(SERVO_REG.VEL_SMOOTH_CYC)
 
     def _set_vel_smooth_cyc(self, cyc):
-        txdata = [0]
-        txdata[0] = int(cyc)
-        self._send(UTRC_RW.W, SERVO_REG.VEL_SMOOTH_CYC, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_SMOOTH_CYC)
-        return ret
+        return self.__set_reg_uint8(SERVO_REG.VEL_SMOOTH_CYC, int(cyc))
 
     def _get_vel_adrc_param(self, i):
-        txdata = [0]
-        txdata[0] = i
-        self._send(UTRC_RW.R, SERVO_REG.VEL_ADRC_PARAM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.VEL_ADRC_PARAM)
+        txdata = bytes([int(i)])
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.VEL_ADRC_PARAM, txdata)
         p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
         return ret, p
 
     def _set_vel_adrc_param(self, i, param):
         txdata = bytes([int(i)])
         txdata += hex_data.fp32_to_bytes_big(float(param))
-        self._send(UTRC_RW.W, SERVO_REG.VEL_ADRC_PARAM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.VEL_ADRC_PARAM)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.VEL_ADRC_PARAM, txdata)
         return ret
 
     ############################################################
@@ -529,106 +376,58 @@ class _ServoApiBase:
     ############################################################
 
     def _get_tau_target(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_TARGET, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_TARGET)
-        tau = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, tau
+        return self.__get_reg_fp32(SERVO_REG.TAU_TARGET)
 
     def _set_tau_target(self, tau):
-        txdata = hex_data.fp32_to_bytes_big(tau)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_TARGET, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_TARGET)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.TAU_TARGET, tau)
 
     def _get_tau_current(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_CURRENT, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_CURRENT)
-        tau = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, tau
+        return self.__get_reg_fp32(SERVO_REG.TAU_CURRENT)
 
     def _get_tau_limit_min(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_LIMIT_MIN, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_LIMIT_MIN)
-        tau = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, tau
+        return self.__get_reg_fp32(SERVO_REG.TAU_LIMIT_MIN)
 
     def _set_tau_limit_min(self, tau):
-        txdata = hex_data.fp32_to_bytes_big(tau)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_LIMIT_MIN, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_LIMIT_MIN)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.TAU_LIMIT_MIN, tau)
 
     def _get_tau_limit_max(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_LIMIT_MAX, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_LIMIT_MAX)
-        tau = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, tau
+        return self.__get_reg_fp32(SERVO_REG.TAU_LIMIT_MAX)
 
     def _set_tau_limit_max(self, tau):
-        txdata = hex_data.fp32_to_bytes_big(tau)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_LIMIT_MAX, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_LIMIT_MAX)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.TAU_LIMIT_MAX, tau)
 
     def _get_tau_limit_diff(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_LIMIT_DIFF, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_LIMIT_DIFF)
-        value = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, value
+        return self.__get_reg_fp32(SERVO_REG.TAU_LIMIT_DIFF)
 
     def _set_tau_limit_diff(self, value):
-        txdata = hex_data.fp32_to_bytes_big(value)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_LIMIT_DIFF, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_LIMIT_DIFF)
-        return ret
+        return self.__set_reg_fp32(SERVO_REG.TAU_LIMIT_DIFF, value)
 
     def _get_tau_pidp(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_PIDP, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_PIDP)
-        pid_p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pid_p
+        return self.__get_reg_fp32(SERVO_REG.TAU_PIDP)
 
-    def _set_tau_pidp(self, pid_p):
-        txdata = hex_data.fp32_to_bytes_big(pid_p)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_PIDP, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_PIDP)
-        return ret
+    def _set_tau_pidp(self, p):
+        return self.__set_reg_fp32(SERVO_REG.TAU_PIDP, p)
 
     def _get_tau_pidi(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_PIDI, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_PIDI)
-        pid_i = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
-        return ret, pid_i
+        return self.__get_reg_fp32(SERVO_REG.TAU_PIDI)
 
-    def _set_tau_pidi(self, pid_i):
-        txdata = hex_data.fp32_to_bytes_big(pid_i)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_PIDI, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_PIDI)
-        return ret
+    def _set_tau_pidi(self, i):
+        return self.__set_reg_fp32(SERVO_REG.TAU_PIDI, i)
 
     def _get_tau_smooth_cyc(self):
-        self._send(UTRC_RW.R, SERVO_REG.TAU_SMOOTH_CYC, None)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_SMOOTH_CYC)
-        return ret, bus_rmsg.data[0]
+        return self.__get_reg_int8(SERVO_REG.TAU_SMOOTH_CYC)
 
-    def _set_tau_smooth_cyc(self, value):
-        txdata = [0]
-        txdata[0] = int(value)
-        self._send(UTRC_RW.W, SERVO_REG.TAU_SMOOTH_CYC, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_SMOOTH_CYC)
-        return ret
+    def _set_tau_smooth_cyc(self, cyc):
+        return self.__set_reg_uint8(SERVO_REG.TAU_SMOOTH_CYC, int(cyc))
 
     def _get_tau_adrc_param(self, i):
-        txdata = [0]
-        txdata[0] = i
-        self._send(UTRC_RW.R, SERVO_REG.TAU_ADRC_PARAM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.TAU_ADRC_PARAM)
+        txdata = bytes([int(i)])
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.TAU_ADRC_PARAM, txdata)
         p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
         return ret, p
 
     def _set_tau_adrc_param(self, i, param):
         txdata = bytes([int(i)])
         txdata += hex_data.fp32_to_bytes_big(float(param))
-        self._send(UTRC_RW.W, SERVO_REG.TAU_ADRC_PARAM, txdata)
-        ret, bus_rmsg = self._pend(UTRC_RW.W, SERVO_REG.TAU_ADRC_PARAM)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.TAU_ADRC_PARAM, txdata)
         return ret

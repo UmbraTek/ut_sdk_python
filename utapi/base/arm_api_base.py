@@ -5,9 +5,11 @@
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
 from common import hex_data
-from base.arm_reg import ARM_REG
+from base.arm_reg import ARM_REG, RS485_LINE
+from base.gpio_reg import GPIO_REG
 from common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
 import logging
+import threading
 
 
 class _ArmApiBase:
@@ -18,12 +20,15 @@ class _ArmApiBase:
         self.socket_fp = socket_fp
         self.socket_fp.flush()
         self.utrc_client = UtrcClient(self.socket_fp)
+        self.mutex = threading.Lock()
 
         self.tx_data = UtrcType()
         self.tx_data.state = 0x00
         self.tx_data.master_id = 0xAA
         self.tx_data.slave_id = 0x55
 
+        self.tgpio_id = 1
+        self.cgpio_id = 1
         self.__AXIS = 6
         self.reg = ARM_REG(self.__AXIS)
 
@@ -70,8 +75,52 @@ class _ArmApiBase:
             data_rlen = cmd[4]
         return self.utrc_client.pend(self.tx_data, data_rlen, timeout_s)
 
+    def __sendpend(self, rw, reg, tx_data):
+        self.mutex.acquire()
+        self.__send(rw, reg, tx_data)
+        ret, utrc_rmsg = self.__pend(rw, reg)
+        self.mutex.release()
+        return ret, utrc_rmsg
+
     def is_err(self):
         return self.__is_err
+
+    ############################################################
+    #                       Basic Function
+    ############################################################
+
+    def __get_reg_int8(self, reg, n):
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, None)
+        if n == 1:
+            value = hex_data.bytes_to_int8(utrc_rmsg.data[0], n)
+        else:
+            value = hex_data.bytes_to_int8(utrc_rmsg.data[0:n], n)
+        return ret, value
+
+    def __set_reg_int8(self, reg, value, n):
+        txdata = hex_data.int8_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        return ret
+
+    def __get_reg_int32(self, reg, n):
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, None)
+        value = hex_data.bytes_to_int32_big(utrc_rmsg.data, n)
+        return ret, value
+
+    def __set_reg_int32(self, reg, value, n):
+        txdata = hex_data.int32_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        return ret
+
+    def __get_reg_fp32(self, reg, n):
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, None)
+        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data, n)
+        return ret, value
+
+    def __set_reg_fp32(self, reg, value, n):
+        datas = hex_data.fp32_to_bytes_big(value, n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, datas)
+        return ret
 
     ############################################################
     #                       Basic Api
@@ -85,9 +134,7 @@ class _ArmApiBase:
             uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
                            17-bit string
         """
-        self.__send(UTRC_RW.R, self.reg.UUID, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UUID)
-        uuid = utrc_rmsg.data[0:17]
+        ret, uuid = self.__get_reg_int8(self.reg.UUID, 17)
         uuid = "".join([chr(x) for x in uuid])
         return ret, uuid
 
@@ -98,9 +145,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             version (string): Software version, 20-bit string
         """
-        self.__send(UTRC_RW.R, self.reg.SW_VERSION, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.SW_VERSION)
-        version = utrc_rmsg.data[0:20]
+        ret, version = self.__get_reg_int8(self.reg.SW_VERSION, 20)
         ver_srt = "".join([chr(x) for x in version])
         return ret, ver_srt
 
@@ -111,9 +156,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             version (string): Hardware version, 20-bit string
         """
-        self.__send(UTRC_RW.R, self.reg.HW_VERSION, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.HW_VERSION)
-        version = utrc_rmsg.data[0:20]
+        ret, version = self.__get_reg_int8(self.reg.HW_VERSION, 20)
         ver_srt = "".join([chr(x) for x in version])
         return ret, ver_srt
 
@@ -124,9 +167,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             axis (int): The number of arm axes
         """
-        self.__send(UTRC_RW.R, self.reg.UBOT_AXIS, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UBOT_AXIS)
-        axis = utrc_rmsg.data[0]
+        ret, axis = self.__get_reg_int8(self.reg.UBOT_AXIS, 1)
         self.__AXIS = axis
         return ret, axis
 
@@ -136,11 +177,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(self.reg.SYS_SHUTDOWN[0])
-        self.__send(UTRC_RW.W, self.reg.SYS_SHUTDOWN, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.SYS_SHUTDOWN)
-        return ret
+        return self.__set_reg_int8(self.reg.SYS_SHUTDOWN, self.reg.SYS_SHUTDOWN[0], 1)
 
     def reset_err(self):
         """Reset the error state of the device
@@ -148,11 +185,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(self.reg.RESET_ERR[0])
-        self.__send(UTRC_RW.W, self.reg.RESET_ERR, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.RESET_ERR)
-        return ret
+        return self.__set_reg_int8(self.reg.RESET_ERR, self.reg.RESET_ERR[0], 1)
 
     def reboot_system(self):
         """Restart the system
@@ -160,11 +193,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(self.reg.SYS_REBOOT[0])
-        self.__send(UTRC_RW.W, self.reg.SYS_REBOOT, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.SYS_REBOOT)
-        return ret
+        return self.__set_reg_int8(self.reg.SYS_REBOOT, self.reg.SYS_REBOOT[0], 1)
 
     def erase_parm(self):
         """Restore the parameters to factory settings
@@ -172,11 +201,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(self.reg.ERASE_PARM[0])
-        self.__send(UTRC_RW.W, self.reg.ERASE_PARM, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.ERASE_PARM)
-        return ret
+        return self.__set_reg_int8(self.reg.ERASE_PARM, self.reg.ERASE_PARM[0], 1)
 
     def saved_parm(self):
         """Save the current parameter settings
@@ -184,11 +209,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(self.reg.SAVED_PARM[0])
-        self.__send(UTRC_RW.W, self.reg.SAVED_PARM, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.SAVED_PARM)
-        return ret
+        return self.__set_reg_int8(self.reg.SAVED_PARM, self.reg.SAVED_PARM[0], 1)
 
     ############################################################
     #                       Control Api
@@ -206,10 +227,7 @@ class _ArmApiBase:
                 3: cartesian teaching mode (NOT used in current version)
 
         """
-        self.__send(UTRC_RW.R, self.reg.MOTION_MDOE, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.MOTION_MDOE)
-        mode = utrc_rmsg.data[0]
-        return ret, mode
+        return self.__get_reg_int8(self.reg.MOTION_MDOE, 1)
 
     def set_motion_mode(self, mode):
         """Set the operating mode of the arm
@@ -221,11 +239,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(mode)
-        self.__send(UTRC_RW.W, self.reg.MOTION_MDOE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOTION_MDOE)
-        return ret
+        return self.__set_reg_int8(self.reg.MOTION_MDOE, int(mode), 1)
 
     def get_motion_enable(self):
         """Get the enable state of the arm
@@ -237,10 +251,7 @@ class _ArmApiBase:
                 0x0000 means all disable
                 0x0001 means only the first joint is enabled
         """
-        self.__send(UTRC_RW.R, self.reg.MOTION_ENABLE, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.MOTION_ENABLE)
-        value = hex_data.bytes_to_uint32_big(utrc_rmsg.data)
-        return ret, value
+        return self.__get_reg_int32(self.reg.MOTION_ENABLE, 1)
 
     def set_motion_enable(self, axis, en):
         """Set the enable state of the arm
@@ -252,12 +263,8 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0] * 2
-        txdata[0] = axis
-        txdata[1] = en
-        self.__send(UTRC_RW.W, self.reg.MOTION_ENABLE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOTION_ENABLE)
-        return ret
+        txdata = [int(axis), int(en)]
+        return self.__set_reg_int8(self.reg.MOTION_ENABLE, txdata, 2)
 
     def get_brake_enable(self):
         """Get the enable state of the joint brake
@@ -270,10 +277,7 @@ class _ArmApiBase:
                 0x0001 means only the first joint is enabled
 
         """
-        self.__send(UTRC_RW.R, self.reg.BRAKE_ENABLE, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.BRAKE_ENABLE)
-        value = hex_data.bytes_to_uint32_big(utrc_rmsg.data)
-        return ret, value
+        return self.__get_reg_int32(self.reg.BRAKE_ENABLE, 1)
 
     def set_brake_enable(self, axis, en):
         """Only set the enable state of the joint brake
@@ -285,12 +289,8 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0] * 2
-        txdata[0] = axis
-        txdata[1] = en
-        self.__send(UTRC_RW.W, self.reg.BRAKE_ENABLE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.BRAKE_ENABLE)
-        return ret
+        txdata = [int(axis), int(en)]
+        return self.__set_reg_int8(self.reg.BRAKE_ENABLE, txdata, 2)
 
     def get_error_code(self):
         """Get error code
@@ -299,12 +299,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             code (list): code[0] is error code, code[1] is warning code
         """
-        self.__send(UTRC_RW.R, self.reg.ERROR_CODE, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.ERROR_CODE)
-        code = [0] * 2
-        code[0] = hex_data.bytes_to_int8(utrc_rmsg.data[0])
-        code[1] = hex_data.bytes_to_int8(utrc_rmsg.data[1])
-        return ret, code
+        return self.__get_reg_int8(self.reg.ERROR_CODE, 2)
 
     def get_servo_msg(self):
         """Get servo status information
@@ -315,9 +310,7 @@ class _ArmApiBase:
                 msg[0:Axis] Servo communication status
                 msg[Axis:2*Axis] Servo error code
         """
-        self.__send(UTRC_RW.R, self.reg.SERVO_MSG, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.SERVO_MSG)
-        msg = hex_data.bytes_to_int8(utrc_rmsg.data, self.__AXIS * 2)
+        ret, msg = self.__get_reg_int8(self.reg.SERVO_MSG, self.__AXIS * 2)
         msg_srt = " ".join([str(x) for x in msg])
         return ret, msg_srt
 
@@ -333,10 +326,7 @@ class _ArmApiBase:
                 4: Stopping
 
         """
-        self.__send(UTRC_RW.R, self.reg.MOTION_STATUS, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.MOTION_STATUS)
-        state = utrc_rmsg.data[0]
-        return ret, state
+        return self.__get_reg_int8(self.reg.MOTION_STATUS, 1)
 
     def set_motion_status(self, state):
         """Set the running status of the arm
@@ -350,11 +340,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(state)
-        self.__send(UTRC_RW.W, self.reg.MOTION_STATUS, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOTION_STATUS)
-        return ret
+        return self.__set_reg_int8(self.reg.MOTION_STATUS, int(state), 1)
 
     def get_cmd_num(self):
         """Get the current number of instruction cache
@@ -362,10 +348,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        self.__send(UTRC_RW.R, self.reg.CMD_NUM, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.CMD_NUM)
-        value = hex_data.bytes_to_uint32_big(utrc_rmsg.data)
-        return ret, value
+        return self.__get_reg_int32(self.reg.CMD_NUM, 1)
 
     def set_cmd_num(self, value):
         """Clear the current instruction cache
@@ -376,10 +359,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.uint32_to_bytes_big(value)
-        self.__send(UTRC_RW.W, self.reg.CMD_NUM, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.CMD_NUM)
-        return ret
+        return self.__set_reg_int32(self.reg.CMD_NUM, int(value), 1)
 
     ############################################################
     #                     Trajectory Api
@@ -398,17 +378,13 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-
         txdata = [0] * 9
         for i in range(6):
             txdata[i] = mvpose[i]
         txdata[6] = mvvelo
         txdata[7] = mvacc
         txdata[8] = mvtime
-        datas = hex_data.fp32_to_bytes_big(txdata, 9)
-        self.__send(UTRC_RW.W, self.reg.MOVET_LINE, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVET_LINE)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVET_LINE, txdata, 9)
 
     def moveto_cartesian_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
         """Blend circular (in tool-space) and move linear (in tool-space) to position.
@@ -432,10 +408,7 @@ class _ArmApiBase:
         txdata[7] = mvacc
         txdata[8] = mvtime
         txdata[9] = mvradii
-        datas = hex_data.fp32_to_bytes_big(txdata, 10)
-        self.__send(UTRC_RW.W, self.reg.MOVET_LINEB, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVET_LINEB)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVET_LINEB, txdata, 10)
 
     def moveto_cartesian_p2p(self):
         """NOT public in current version
@@ -480,10 +453,7 @@ class _ArmApiBase:
         txdata[13] = mvacc
         txdata[14] = mvtime
         txdata[15] = percent
-        datas = hex_data.fp32_to_bytes_big(txdata, 16)
-        self.__send(UTRC_RW.W, self.reg.MOVET_CIRCLE, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVET_CIRCLE)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVET_CIRCLE, txdata, 16)
 
     def moveto_joint_line(self):
         """NOT public in current version
@@ -520,10 +490,7 @@ class _ArmApiBase:
         txdata[self.__AXIS] = mvvelo
         txdata[self.__AXIS + 1] = mvacc
         txdata[self.__AXIS + 2] = mvtime
-        datas = hex_data.fp32_to_bytes_big(txdata, self.__AXIS + 3)
-        self.__send(UTRC_RW.W, self.reg.MOVEJ_P2P, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVEJ_P2P)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVEJ_P2P, txdata, self.__AXIS + 3)
 
     def moveto_joint_circle(self, pose1, pose2, mvvelo, mvacc, mvtime, percent):
         """NOT public in current version
@@ -556,10 +523,7 @@ class _ArmApiBase:
         txdata[0] = mvvelo
         txdata[1] = mvacc
         txdata[2] = mvtime
-        datas = hex_data.fp32_to_bytes_big(txdata, 3)
-        self.__send(UTRC_RW.W, self.reg.MOVEJ_HOME, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVEJ_HOME)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVEJ_HOME, txdata, 3)
 
     def moveto_servoj(self, mvjoint, mvvelo, mvacc, mvtime):
         """NOT public in current version
@@ -579,10 +543,7 @@ class _ArmApiBase:
         txdata[self.__AXIS] = mvvelo
         txdata[self.__AXIS + 1] = mvacc
         txdata[self.__AXIS + 2] = mvtime
-        datas = hex_data.fp32_to_bytes_big(txdata, self.__AXIS + 3)
-        self.__send(UTRC_RW.W, self.reg.MOVE_SERVOJ, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVE_SERVOJ)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVE_SERVOJ, txdata, self.__AXIS + 3)
 
     def moveto_servo_joint(self, frames_num, mvjoint, mvtime):
         """Move to position (linear in joint-space) When using this command,And specify the time to execute to the target location
@@ -608,8 +569,7 @@ class _ArmApiBase:
         datas += hex_data.fp32_to_bytes_big(txdata, data_len)
 
         self.reg.MOVES_JOINT[3] = (data_len + 1) * 4
-        self.__send(UTRC_RW.W, self.reg.MOVES_JOINT, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVES_JOINT)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.MOVES_JOINT, datas)
         return ret
 
     def move_sleep(self, time):
@@ -621,10 +581,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        datas = hex_data.fp32_to_bytes_big(time)
-        self.__send(UTRC_RW.W, self.reg.MOVE_SLEEP, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.MOVE_SLEEP)
-        return ret
+        return self.__set_reg_fp32(self.reg.MOVE_SLEEP, time, 1)
 
     def plan_sleep(self, time):
         """Sleep for an amount of plan time
@@ -635,10 +592,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        datas = hex_data.fp32_to_bytes_big(time)
-        self.__send(UTRC_RW.W, self.reg.PLAN_SLEEP, datas)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.PLAN_SLEEP)
-        return ret
+        return self.__set_reg_fp32(self.reg.PLAN_SLEEP, time, 1)
 
     ############################################################
     #                    Parameter Api
@@ -652,10 +606,7 @@ class _ArmApiBase:
             jerk (float): jerk [mm/s^3]
 
         """
-        self.__send(UTRC_RW.R, self.reg.TCP_JERK, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.TCP_JERK)
-        jerk = hex_data.bytes_to_fp32_big(utrc_rmsg.data)
-        return ret, jerk
+        return self.__get_reg_fp32(self.reg.TCP_JERK, 1)
 
     def set_tcp_jerk(self, jerk):
         """Set the jerk of the tool-space
@@ -666,10 +617,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(jerk)
-        self.__send(UTRC_RW.W, self.reg.TCP_JERK, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.TCP_JERK)
-        return ret
+        return self.__set_reg_fp32(self.reg.TCP_JERK, jerk, 1)
 
     def get_tcp_maxacc(self):
         """Set the maximum acceleration of the tool-space
@@ -678,10 +626,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             maxacc (float): maximum acceleration [mm/s^2]
         """
-        self.__send(UTRC_RW.R, self.reg.TCP_MAXACC, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.TCP_MAXACC)
-        maxacc = hex_data.bytes_to_fp32_big(utrc_rmsg.data)
-        return ret, maxacc
+        return self.__get_reg_fp32(self.reg.TCP_MAXACC, 1)
 
     def set_tcp_maxacc(self, maxacc):
         """Set the maximum acceleration of the tool-space
@@ -692,10 +637,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(maxacc)
-        self.__send(UTRC_RW.W, self.reg.TCP_MAXACC, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.TCP_MAXACC)
-        return ret
+        return self.__set_reg_fp32(self.reg.TCP_MAXACC, maxacc, 1)
 
     def get_joint_jerk(self):
         """Get the jerk of the joint-space
@@ -704,10 +646,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             jerk (float): jerk [rad/s^3]
         """
-        self.__send(UTRC_RW.R, self.reg.JOINT_JERK, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.JOINT_JERK)
-        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data)
-        return ret, value
+        return self.__get_reg_fp32(self.reg.JOINT_JERK, 1)
 
     def set_joint_jerk(self, jerk):
         """Set the jerk of the joint-space
@@ -718,10 +657,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(jerk)
-        self.__send(UTRC_RW.W, self.reg.JOINT_JERK, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.JOINT_JERK)
-        return ret
+        return self.__set_reg_fp32(self.reg.JOINT_JERK, jerk, 1)
 
     def get_joint_maxacc(self):
         """Get the maximum acceleration of the joint-space
@@ -730,10 +666,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             maxacc (float): Maximum acceleration [rad/s^2]
         """
-        self.__send(UTRC_RW.R, self.reg.JOINT_MAXACC, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.JOINT_MAXACC)
-        maxacc = hex_data.bytes_to_fp32_big(utrc_rmsg.data)
-        return ret, maxacc
+        return self.__get_reg_fp32(self.reg.JOINT_MAXACC, 1)
 
     def set_joint_maxacc(self, maxacc):
         """Set the maximum acceleration of the joint-space
@@ -744,10 +677,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(maxacc)
-        self.__send(UTRC_RW.W, self.reg.JOINT_MAXACC, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.JOINT_MAXACC)
-        return ret
+        return self.__set_reg_fp32(self.reg.JOINT_MAXACC, maxacc, 1)
 
     def get_tcp_offset(self):
         """Get the coordinate offset of the end tcp tool
@@ -756,10 +686,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             offset (list): Offset cartesian position [mm mm mm rad rad rad]
         """
-        self.__send(UTRC_RW.R, self.reg.TCP_OFFSET, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.TCP_OFFSET)
-        offset = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 6)
-        return ret, offset
+        return self.__get_reg_fp32(self.reg.TCP_OFFSET, 6)
 
     def set_tcp_offset(self, offset):
         """Set the coordinate offset of the end tcp tool
@@ -770,10 +697,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(offset, 6)
-        self.__send(UTRC_RW.W, self.reg.TCP_OFFSET, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.TCP_OFFSET)
-        return ret
+        return self.__set_reg_fp32(self.reg.TCP_OFFSET, offset, 6)
 
     def get_tcp_load(self):
         """Get payload mass and center of gravity
@@ -782,10 +706,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             value (list): [Mass, CoGx, CoGy, CoGz], mass in kilograms, Center of Gravity in millimeter
         """
-        self.__send(UTRC_RW.R, self.reg.LOAD_PARAM, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.LOAD_PARAM)
-        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
-        return ret, value
+        return self.__get_reg_fp32(self.reg.LOAD_PARAM, 4)
 
     def set_tcp_load(self, mass, dir):
         """Set payload mass and center of gravity
@@ -800,11 +721,8 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(mass, 1)
-        txdata += hex_data.fp32_to_bytes_big(dir, 3)
-        self.__send(UTRC_RW.W, self.reg.LOAD_PARAM, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.LOAD_PARAM)
-        return ret
+        txdata = [mass, dir[0], dir[1], dir[2]]
+        return self.__set_reg_fp32(self.reg.LOAD_PARAM, txdata, 4)
 
     def get_gravity_dir(self):
         """Get the direction of the acceleration experienced by the robot
@@ -813,10 +731,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             value (list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
         """
-        self.__send(UTRC_RW.R, self.reg.GRAVITY_DIR, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.GRAVITY_DIR)
-        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 3)
-        return ret, value
+        return self.__get_reg_fp32(self.reg.GRAVITY_DIR, 3)
 
     def set_gravity_dir(self, value):
         """Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
@@ -830,10 +745,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = hex_data.fp32_to_bytes_big(value, 3)
-        self.__send(UTRC_RW.W, self.reg.GRAVITY_DIR, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.GRAVITY_DIR)
-        return ret
+        return self.__set_reg_fp32(self.reg.GRAVITY_DIR, value, 3)
 
     def get_collis_sens(self):
         """Get the sensitivity of collision detection
@@ -842,10 +754,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             num (int): 0-5
         """
-        self.__send(UTRC_RW.R, self.reg.COLLIS_SENS, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.COLLIS_SENS)
-        num = utrc_rmsg.data[0]
-        return ret, num
+        return self.__get_reg_int8(self.reg.COLLIS_SENS, 1)
 
     def set_collis_sens(self, num):
         """Set the sensitivity of collision detection
@@ -857,11 +766,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(num)
-        self.__send(UTRC_RW.W, self.reg.COLLIS_SENS, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.COLLIS_SENS)
-        return ret
+        return self.__set_reg_int8(self.reg.COLLIS_SENS, int(num), 1)
 
     def get_teach_sens(self):
         """Get the sensitivity of freedrive
@@ -870,10 +775,7 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             num (int): 1-5
         """
-        self.__send(UTRC_RW.R, self.reg.TEACH_SENS, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.TEACH_SENS)
-        num = utrc_rmsg.data[0]
-        return ret, num
+        return self.__get_reg_int8(self.reg.TEACH_SENS, 1)
 
     def set_teach_sens(self, num):
         """Set the sensitivity of freedrive
@@ -884,10 +786,38 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        txdata = [0]
-        txdata[0] = int(num)
-        self.__send(UTRC_RW.W, self.reg.TEACH_SENS, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.TEACH_SENS)
+        return self.__set_reg_int8(self.reg.TEACH_SENS, int(num), 1)
+
+    def get_friction(self, axis):
+        """Get the friction of the joint
+
+        Args:
+            axis ([int]): Joint number one to N
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            fri ([list]): [Forward Coulomb, Forward viscous, reverse Coulomb, reverse viscous]
+        """
+        txdata = bytes([self.reg.FRICTION[0]])
+        txdata += bytes([int(axis)])
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.FRICTION, txdata)
+        fri = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
+        return ret, fri
+
+    def set_friction(self, axis, fri):
+        """Set the friction of the joint
+
+        Args:
+            axis ([int]): Joint number one to N
+            fri ([list]): [Forward Coulomb, Forward viscous, reverse Coulomb, reverse viscous]
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = bytes([self.reg.FRICTION[0]])
+        txdata += bytes([int(axis)])
+        txdata += hex_data.fp32_to_bytes_big(fri, 4)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.FRICTION, txdata)
         return ret
 
     ############################################################
@@ -904,10 +834,7 @@ class _ArmApiBase:
             pos (list): The current target TCP vector; ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]
 
         """
-        self.__send(UTRC_RW.R, self.reg.TCP_POS_CURR, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.TCP_POS_CURR)
-        pose = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 6)
-        return ret, pose
+        return self.__get_reg_fp32(self.reg.TCP_POS_CURR, 6)
 
     def get_tcp_actual_pos(self):
         """NOT public in current version
@@ -932,10 +859,7 @@ class _ArmApiBase:
             joints (list): The current target joint angular position vector in rad
 
         """
-        self.__send(UTRC_RW.R, self.reg.JOINT_POS_CURR, None)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.JOINT_POS_CURR)
-        joints = hex_data.bytes_to_fp32_big(utrc_rmsg.data, self.__AXIS)
-        return ret, joints
+        return self.__get_reg_fp32(self.reg.JOINT_POS_CURR, self.__AXIS)
 
     def get_joint_actual_pos(self):
         """NOT public in current version
@@ -1032,8 +956,7 @@ class _ArmApiBase:
         txdata += bytes([id])
         txdata += bytes([reg])
 
-        self.__send(UTRC_RW.R, self.reg.UTRC_INT8_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_INT8_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_INT8_NOW, txdata)
         value = utrc_rmsg.data[0:2]
         value = hex_data.bytes_to_int8(value, 2)
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
@@ -1062,8 +985,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += bytes([int(value)])
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_INT8_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_INT8_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_INT8_NOW, txdata)
         value = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value
@@ -1090,8 +1012,7 @@ class _ArmApiBase:
         txdata += bytes([id])
         txdata += bytes([reg])
 
-        self.__send(UTRC_RW.R, self.reg.UTRC_INT32_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_INT32_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_INT32_NOW, txdata)
         value = [0] * 2
         value[0] = hex_data.bytes_to_int32_big(utrc_rmsg.data[0:4])
         value[1] = hex_data.bytes_to_int32_big(utrc_rmsg.data[4:8])
@@ -1121,8 +1042,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += hex_data.int32_to_bytes_big(int(value))
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_INT32_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_INT32_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_INT32_NOW, txdata)
         value = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value
@@ -1149,8 +1069,7 @@ class _ArmApiBase:
         txdata += bytes([id])
         txdata += bytes([reg])
 
-        self.__send(UTRC_RW.R, self.reg.UTRC_FP32_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_FP32_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_FP32_NOW, txdata)
         value = [0] * 2
         value[0] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[0:4])
         value[1] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[4:8])
@@ -1180,8 +1099,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += hex_data.fp32_to_bytes_big(value)
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_FP32_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_FP32_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_FP32_NOW, txdata)
         value = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value
@@ -1210,8 +1128,7 @@ class _ArmApiBase:
         txdata += bytes([len])
         self.reg.UTRC_INT8N_NOW[2] = len + 1
 
-        self.__send(UTRC_RW.R, self.reg.UTRC_INT8N_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_INT8N_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_INT8N_NOW, txdata)
         value = utrc_rmsg.data[0:len + 1]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
@@ -1243,8 +1160,7 @@ class _ArmApiBase:
             txdata += bytes([value[i]])
         self.reg.UTRC_INT8N_NOW[3] = len + 4
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_INT8N_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_INT8N_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_INT8N_NOW, txdata)
         value = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value
@@ -1272,8 +1188,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += bytes([int(value)])
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_INT8_QUE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_INT8_QUE)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_INT8_QUE, txdata)
         if ret == UTRC_RX_ERROR.STATE:
             return 0
         else:
@@ -1300,8 +1215,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += hex_data.int32_to_bytes_big(int(value))
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_INT32_QUE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_INT32_QUE)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_INT32_QUE, txdata)
         if ret == UTRC_RX_ERROR.STATE:
             return 0
         else:
@@ -1329,8 +1243,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += hex_data.fp32_to_bytes_big(value)
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_FP32_QUE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_FP32_QUE)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_FP32_QUE, txdata)
         if ret == UTRC_RX_ERROR.STATE:
             return 0
         else:
@@ -1360,8 +1273,7 @@ class _ArmApiBase:
             txdata += bytes([value[i]])
         self.reg.UTRC_INT8N_QUE[3] = len + 4
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_INT8N_QUE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_INT8N_QUE)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_INT8N_QUE, txdata)
         if ret == UTRC_RX_ERROR.STATE:
             return 0
         else:
@@ -1396,8 +1308,7 @@ class _ArmApiBase:
         self.reg.PASS_RS485_NOW[3] = tx_len + 4
         self.reg.PASS_RS485_NOW[4] = rx_len + 2
 
-        self.__send(UTRC_RW.W, self.reg.PASS_RS485_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.PASS_RS485_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.PASS_RS485_NOW, txdata)
         value = utrc_rmsg.data[0:rx_len + 2]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
@@ -1428,8 +1339,7 @@ class _ArmApiBase:
             txdata += bytes([tx_data[i]])
         self.reg.PASS_RS485_QUE[3] = tx_len + 2
 
-        self.__send(UTRC_RW.W, self.reg.PASS_RS485_QUE, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.PASS_RS485_QUE)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.PASS_RS485_QUE, txdata)
         if ret == UTRC_RX_ERROR.STATE:
             return 0
         else:
@@ -1458,8 +1368,7 @@ class _ArmApiBase:
         txdata += bytes([reg])
         txdata += bytes([num])
 
-        self.__send(UTRC_RW.R, self.reg.UTRC_U8FP32_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_U8FP32_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_U8FP32_NOW, txdata)
         value = [0] * 2
         value[0] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[0:4])
         value[1] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[4:8])
@@ -1492,8 +1401,7 @@ class _ArmApiBase:
         txdata += bytes([num])
         txdata += hex_data.fp32_to_bytes_big(value)
 
-        self.__send(UTRC_RW.W, self.reg.UTRC_U8FP32_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.W, self.reg.UTRC_U8FP32_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.UTRC_U8FP32_NOW, txdata)
         value = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value
@@ -1522,8 +1430,7 @@ class _ArmApiBase:
         txdata += bytes([len])
         self.reg.UTRC_FP32N_NOW[2] = len * 4 + 4
 
-        self.__send(UTRC_RW.R, self.reg.UTRC_FP32N_NOW, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.UTRC_FP32N_NOW)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_FP32N_NOW, txdata)
         rx_data = hex_data.bytes_to_fp32_big(utrc_rmsg.data, len + 1)
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return rx_data[0], rx_data[1:len + 1]
@@ -1554,8 +1461,7 @@ class _ArmApiBase:
         txdata = bytes([line])
         txdata += bytes([id])
 
-        self.__send(UTRC_RW.R, self.reg.GPIO_IN, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.GPIO_IN)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.GPIO_IN, txdata)
         value = [0] * 20
         value[0] = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         value[1] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[1:5])  # fun
@@ -1589,8 +1495,7 @@ class _ArmApiBase:
         txdata = bytes([line])
         txdata += bytes([id])
 
-        self.__send(UTRC_RW.R, self.reg.GPIO_OU, txdata)
-        ret, utrc_rmsg = self.__pend(UTRC_RW.R, self.reg.GPIO_OU)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.GPIO_OU, txdata)
         value = [0] * 20
         value[0] = hex_data.bytes_to_int8(utrc_rmsg.data[0])
         value[1] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[1:5])  # fun
@@ -1617,7 +1522,7 @@ class _ArmApiBase:
                 data[2]: dac num
                 data[2-N]: dac value
         """
-        return self.__get_gpio_in(RS485_LINE.TGPIO, 1)
+        return self.__get_gpio_in(RS485_LINE.TGPIO, self.tgpio_id)
 
     def get_tgpio_out(self):
         """Gets the output value of the end-tool GPIO module
@@ -1630,7 +1535,7 @@ class _ArmApiBase:
                 data[2]: adc num
                 data[2-N]: adc value
         """
-        return self.__get_gpio_ou(RS485_LINE.TGPIO, 1)
+        return self.__get_gpio_ou(RS485_LINE.TGPIO, self.tgpio_id)
 
     def set_tgpio_digit_out(self, value):
         """Set the end-tool GPIO module to output digital I/O
@@ -1644,7 +1549,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        return self.set_utrc_int32_now(RS485_LINE.TGPIO, 1, 0x13, int(value))
+        return self.set_utrc_int32_now(RS485_LINE.TGPIO, self.tgpio_id, 0x13, int(value))
 
     def get_tgpio_uuid(self):
         """Get the UUID of the end-tool GPIO module
@@ -1654,7 +1559,7 @@ class _ArmApiBase:
             uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
                            12-bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, 1, 0x01, 12)
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.UUID[0], GPIO_REG.UUID[2])
         print(ret)
         print(data)
         uuid = data[0:12]
@@ -1670,7 +1575,8 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             version (string): Software version, 12-bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, 1, 0x02, 12)
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.SW_VERSION[0],
+                                            GPIO_REG.SW_VERSION[2])
         version = data[0:12]
         print("get_tgpio_sw_version: ")
         print(version)
@@ -1685,7 +1591,8 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             version (string): Hardware version, 12-bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, 1, 0x03, 12)
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.HW_VERSION[0],
+                                            GPIO_REG.HW_VERSION[2])
         version = data[0:12]
         print("get_tgpio_hw_version: ")
         print(version)
@@ -1709,7 +1616,7 @@ class _ArmApiBase:
                 data[2]: dac num
                 data[2-N]: dac value
         """
-        return self.__get_gpio_in(RS485_LINE.CGPIO, 1)
+        return self.__get_gpio_in(RS485_LINE.CGPIO, self.cgpio_id)
 
     def get_cgpio_out(self):
         """Gets the output value of the controller GPIO module
@@ -1722,7 +1629,7 @@ class _ArmApiBase:
                 data[2]: adc num
                 data[2-N]: adc value
         """
-        return self.__get_gpio_ou(RS485_LINE.CGPIO, 1)
+        return self.__get_gpio_ou(RS485_LINE.CGPIO, self.cgpio_id)
 
     def set_cgpio_digit_out(self, value):
         """Set the controller GPIO module to output digital I/O
@@ -1736,7 +1643,7 @@ class _ArmApiBase:
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        return self.set_utrc_int32_now(RS485_LINE.CGPIO, 1, 0x13, int(value))
+        return self.set_utrc_int32_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.DIGITOU[0], int(value))
 
     def get_cgpio_uuid(self):
         """Get the UUID of the NTRO Controller
@@ -1746,7 +1653,7 @@ class _ArmApiBase:
             uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
                            12-bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, 1, GPIO_REG.UUID[0], GPIO_REG.UUID[2])
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.UUID[0], GPIO_REG.UUID[2])
         print(ret)
         print(data)
         uuid = data[0:12]
@@ -1762,7 +1669,8 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             version (string): Software version, 12-bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, 1, GPIO_REG.SW_VERSION[0], GPIO_REG.SW_VERSION[2])
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.SW_VERSION[0],
+                                            GPIO_REG.SW_VERSION[2])
         version = data[0:12]
         print("get_cgpio_sw_version: ")
         print(version)
@@ -1777,7 +1685,8 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
             version (string): Hardware version, 12-bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, 1, GPIO_REG.HW_VERSION[0], GPIO_REG.HW_VERSION[2])
+        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.HW_VERSION[0],
+                                            GPIO_REG.HW_VERSION[2])
         version = data[0:12]
         print("get_cgpio_hw_version: ")
         print(version)
