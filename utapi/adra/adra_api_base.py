@@ -144,7 +144,7 @@ class AdraApiBase(_ServoApiBase):
         return self._saved_parm()
 
     ############################################################
-    #                       Ectension Api
+    #                       Extension Api
     ############################################################
 
     def get_elec_ratio(self):
@@ -255,7 +255,6 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._set_curr_limit(value)
 
-
     ############################################################
     #                       Control Api
     ############################################################
@@ -268,7 +267,7 @@ class AdraApiBase(_ServoApiBase):
             mode (int): operating mode of the arm
                 1: Position mode
                 2: Speed ​​mode
-                3: Current mode
+                3: Torque mode
                 4: Mixed mode
         """
         return self._get_motion_mode()
@@ -281,7 +280,7 @@ class AdraApiBase(_ServoApiBase):
             mode (int): operating mode of the arm
                 1: Position mode
                 2: Speed ​​mode
-                3: Current mode
+                3: Torque mode
                 4: Mixed mode
 
         Returns:
@@ -737,7 +736,7 @@ class AdraApiBase(_ServoApiBase):
         return self._set_vel_adrc_param(i, param)
 
     ############################################################
-    #                       Current Api
+    #                       Torque Api
     ############################################################
 
     def get_tau_target(self):

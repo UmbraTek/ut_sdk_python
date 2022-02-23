@@ -40,9 +40,9 @@ class SocketTcp(threading.Thread):
 
     def close(self):
         if self.is_err == 0:
+            self.is_err = 1
             self.fp.shutdown(socket.SHUT_RDWR)
             self.fp.close()
-            self.is_err = 1
 
     def flush(self, master_id=-1, slave_id=-1):
         if self.is_err != 0:
