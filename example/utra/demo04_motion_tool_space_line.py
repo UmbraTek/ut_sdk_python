@@ -31,16 +31,19 @@ if __name__ == '__main__':
     ret = ubot.set_motion_status(0)  # Set the running status of the arm, 0: Set to ready
     print("set_motion_status :%d" % (ret))
 
-    joint3 = [0, 0, 0, 0, 0, 0]
-    speed = 0.1
+    speed = 30 / 57.296
     acc = 3
-    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 60)
+    ret = ubot.moveto_home_p2p(speed, acc, 60)
 
-    pos1 = [-0.0, -360.0, 800.0, 1.58, 0.0, 0.0]
-    pos2 = [-8.0, -560.0, 600.0, 1.58, 0.0, 0.0]
-    pos3 = [-180.0, -560.0, 600.0, 1.58, 0.0, 0.0]
-    speed = 20.0
-    acc = 10000.0
+    joint1 = [0 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 0 / 57.296]
+    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 60)
+    print("moveto_joint_p2p   :%d" % (ret))
+
+    pos1 = [418, 56, 186, 3.14, 0.0, 1.5]
+    pos2 = [418, -256, 186, 3.14, 0.0, 1.5]
+    pos3 = [418, -256, 486, 3.14, 0.0, 1.5]
+    speed = 120.0
+    acc = 200.0
 
     ret = ubot.moveto_cartesian_line(pos1, speed, acc, 5.0)
     print("moveto_cartesian_line   :%d" % (ret))

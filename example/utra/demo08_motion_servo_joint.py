@@ -31,13 +31,13 @@ if __name__ == '__main__':
     ret = ubot.set_motion_status(0)  # Set the running status of the arm, 0: Set to ready
     print("set_motion_status :%d" % (ret))
 
-    speed = 0.1
+    speed = 30 / 57.296
     acc = 3
     ret = ubot.moveto_home_p2p(speed, acc, 60)
 
-    joint1 = [1.248, 1.416, 1.155, -0.252, -1.248, -0.003]
-    joint2 = [0.990, 1.363, 1.061, -0.291, -0.990, -0.006]
-    joint3 = [1.169, 1.022, 1.070, 0.058, -1.169, -0.004]
+    joint1 = [20 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 40 / 57.296]
+    joint2 = [20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
+    joint3 = [-20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
     time = [2, 2, 2]
     joint = [joint1, joint2, joint3]
 
