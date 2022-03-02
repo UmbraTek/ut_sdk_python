@@ -184,6 +184,12 @@ class _ServoApiBase:
     def _set_motion_dir(self, dir):
         return self.__set_reg_int8(SERVO_REG.MOTION_DIR, int(dir))
 
+    def _get_iwdg_cyc(self):
+        return self.__get_reg_int32(SERVO_REG.IWDG_CYC)
+
+    def _set_iwdg_cyc(self, cyc):
+        return self.__set_reg_int32(SERVO_REG.IWDG_CYC, int(cyc))
+
     def _get_temp_limit(self):
         ret, value = self.__get_reg_int8(SERVO_REG.TEMP_LIMIT, 2)
         return ret, value[0], value[1]

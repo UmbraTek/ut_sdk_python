@@ -24,6 +24,7 @@ class SERVO_REG:
 
     ELEC_RATIO = [0x10, 0, 4, 4, 0]
     MOTION_DIR = [0x11, 0, 1, 1, 0]
+    IWDG_CYC = [0x12, 0, 4, 4, 0]
     TEMP_LIMIT = [0x18, 0, 2, 2, 0]
     VOLT_LIMIT = [0x19, 0, 2, 2, 0]
     CURR_LIMIT = [0x1A, 0, 4, 4, 0]
