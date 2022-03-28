@@ -8,19 +8,20 @@ from common.utrc import UtrcType, UtrcClient, UtrcDecode
 from common.utcc import UtccType, UtccClient
 from common.socket_serial import SocketSerial
 
-# from base.servo_api_base import _ServoApiBase
 from adra.adra_api_base import AdraApiBase
 
 
 class AdraApiSerial(AdraApiBase):
-    def __init__(self, port, baud, is_can=0):
-        """The AdraApiSerial class is an interface class for controlling ADRA connectors through the serial port.
-        It needs to connect the serial port to RS485 module or TCP/IP to CAN module
+    def __init__(self, port, baud, bus_type=0):
+        u"""AdraApiSerial is an interface class that controls the ADRA actuator through a serial port.
+        USB-to-RS485 or USB-to-CAN module hardware is required to connect the computer and the actuator.
 
         Args:
-            port (string): the port of the serial port, generally linux defaults to "/dev/ttyUSB0"
-            baud (int): communication baud rate
-            is_can (int, optional): 0 means RS485 communication; 1 means CAN communication. Defaults to 0.
+            port (string): USB serial port, The default port on Linux is "/dev/ttyUSB0"
+            baud (int): Baud rate of serial communication
+            bus_type (int, optional): 0 indicates the actuator that uses the RS485 port.
+                                      1 indicates the actuator that uses the CAN port.
+                                      Defaults to 0.
         """
         self.DB_FLG = "[SApiSeri] "
         self.__is_err = 0
@@ -33,7 +34,15 @@ class AdraApiSerial(AdraApiBase):
             self.__is_err = 1
             return
 
-        if is_can:
+        if bus_type == 0:
+            self.socket_fp.flush()
+            self.bus_client = UtrcClient(self.socket_fp)
+
+            self.tx_data = UtrcType()
+            self.tx_data.state = 0x00
+            self.tx_data.slave_id = id
+
+        elif bus_type == 1:
             self.socket_fp.flush()
             self.bus_client = UtccClient(self.socket_fp)
             ret = self.bus_client.connect_device()
@@ -44,12 +53,5 @@ class AdraApiSerial(AdraApiBase):
             self.tx_data = UtccType()
             self.tx_data.state = 0x00
             self.tx_data.id = id
-        else:
-            self.socket_fp.flush()
-            self.bus_client = UtrcClient(self.socket_fp)
-
-            self.tx_data = UtrcType()
-            self.tx_data.state = 0x00
-            self.tx_data.slave_id = id
 
         AdraApiBase.__init__(self, self.socket_fp, self.bus_client, self.tx_data)

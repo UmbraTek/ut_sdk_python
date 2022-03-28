@@ -20,18 +20,29 @@ def check_ret(ret, fun):
 
 
 def main():
+    u"""
+    This demo controls the actuator running at a constant speed in speed mode.
+    The actuator ID is 1 and RS485 baud rate is 921600.
+    For better test results, make sure the actuator's current position is within ±100 radians.
+    Linux requires super user privileges to run code.
+    """
     adra = AdraApiSerial("/dev/ttyUSB0", 921600)  # instantiate the adra executor api class
-    adra.connect_to_id(1)  # The ID of the connected target actuator, where the ID is 1
+    adra.connect_to_id(1)  # Step 1: Connect an actuator
 
-    ret = adra.set_motion_mode(2)  # Set actuator motion mode 2: speed mode
-    check_ret(ret, "set_motion_mode")
-    ret = adra.set_motion_enable(1)  # Enable actuator
-    check_ret(ret, "set_motion_enable")
-    ret = adra.set_vel_target(50)  # Set the actuator movement speed to 50 rad/s
-    check_ret(ret, "set_vel_target")
+    ret = adra.into_motion_mode_vel()  # Step 2: Set the motion mode to speed mode.
+    check_ret(ret, "into_motion_mode_vel")
 
-    while 1:
-        time.sleep(0.01)
+    ret = adra.into_motion_enable()  # Step 3: Enable the actuator.
+    check_ret(ret, "into_motion_enable")
+
+    while(1):
+        ret = adra.set_vel_target(50)  # Step 4: Set the target speed of the actuator.
+        check_ret(ret, "set_vel_target")
+        time.sleep(5)
+
+        ret = adra.set_vel_target(-50)
+        check_ret(ret, "set_vel_target")
+        time.sleep(5)
 
 
 if __name__ == '__main__':

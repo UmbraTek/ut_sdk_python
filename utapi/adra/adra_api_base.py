@@ -12,14 +12,16 @@ class AdraApiBase(_ServoApiBase):
         _ServoApiBase.__init__(self, socket_fp, bus_client, tx_data)
 
     def close(self):
-        """Close socket"""
+        u"""
+        Close socket
+        """
         self._close()
 
     def connect_to_id(self, id, virtual_id=0):
-        """Connect actuator ID
+        u"""Sets the connection actuator ID.
 
         Args:
-            id (int): The ID number of the actuator
+            id (int): ID of the actuator.
             virtual_id (int, optional): Only used for debugging. Defaults to 0.
         """
         return self._connect_to_id(id, virtual_id)
@@ -29,117 +31,117 @@ class AdraApiBase(_ServoApiBase):
     ############################################################
 
     def get_uuid(self):
-        """Get the uuid
+        u"""Get the uuid
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
-                           12-bit string
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            uuid (string): The unique code of umbratek products is also one of the bases of maintenance and warranty.
+            12-bit string.
         """
         return self._get_uuid()
 
     def get_sw_version(self):
-        """Get the software version
+        u"""Get the software version.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (string): Software version, 12-bit string
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            version (string): Software version, 12-bit string.
         """
         return self._get_sw_version()
 
     def get_hw_version(self):
-        """Get the hardware version
+        u"""Get the hardware version.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (string): Hardware version, 12-bit string
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            version (string): Hardware version, 12-bit string.
         """
         return self._get_hw_version()
 
     def get_multi_version(self):
-        """Get the Multi-turn version
+        u"""Get the Multi-turn version.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (int): Multi-turn version
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            version (int): Multi-turn version.
         """
         return self._get_multi_version()
 
     def get_mech_ratio(self):
-        """Get the reduction ratio of the mechanical reducer
+        u"""Get the reduction ratio of the mechanical reducer.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            ratio (float): reduction ratio
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            ratio (float): reduction ratio.
         """
         return self._get_mech_ratio()
 
     def set_mech_ratio(self, ratio):
-        """Set the reduction ratio of the mechanical reducer
+        u"""Set the reduction ratio of the mechanical reducer.
 
         Args:
-            ratio (float): reduction ratio
+            ratio (float): reduction ratio.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_mech_ratio(ratio)
 
     def set_com_id(self, id):
-        """Set the id number of the device
+        u"""Set the id number of the actuator.
 
         Args:
-            id (int): id number [1-125]
+            id (int): id number [1-125].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_com_id(id)
 
     def set_com_baud(self, baud):
-        """Set communication baud rate, which can only be set to the following baud rates:
+        u"""Set communication baud rate, which can only be set to the following baud rates:
         9600, 14400, 19200, 38400, 56000,
         115200,128000,230400,256000,460800,500,000,512000,600000,750000,
         921600,1000000,1500000,2000000,2500000,3000000,3500000,4000000,4500000,
-        5000000,5500000,6000000,8000000,11250000
+        5000000,5500000,6000000,8000000,11250000.
 
         Args:
-            baud (int): communication baud rate
+            baud (int): communication baud rate.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_com_baud(baud)
 
     def reset_err(self):
-        """Reset fault
+        u"""Reset fault.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._reset_err()
 
     def restart_driver(self):
-        """Restart the device
+        u"""Restart the actuator.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._restart_driver()
 
     def erase_parm(self):
-        """Restore the parameters to factory settings
+        u"""Restore the parameters to factory settings.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._erase_parm()
 
     def saved_parm(self):
-        """Save the current parameter settings
+        u"""Save the current parameter settings.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._saved_parm()
 
@@ -148,110 +150,141 @@ class AdraApiBase(_ServoApiBase):
     ############################################################
 
     def get_elec_ratio(self):
-        """Get electronic gear ratio
+        u"""Get electronic gear ratio.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            ratio (float): reduction ratio
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            ratio (float): reduction ratio.
         """
         return self._get_elec_ratio()
 
     def set_elec_ratio(self, ratio):
-        """Set electronic gear ratio
+        u"""Set electronic gear ratio.
 
         Args:
-            ratio (float): reduction ratio
+            ratio (float): reduction ratio.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_elec_ratio(ratio)
 
     def get_motion_dir(self):
-        """Get the direction of motion, 0: positive direction, 1: negative direction
+        u"""Get the direction of motion, 0: forward direction, 1: negative direction.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            dir (bool): 1 or 0
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            dir (bool): 1 or 0.
         """
         return self._get_motion_dir()
 
     def set_motion_dir(self, dir):
-        """Set the direction of motion, 0: positive direction, 1: negative direction
+        u"""Set the direction of motion, 0: forward direction, 1: negative direction.
 
         Args:
-            dir (bool): 1 or 0
+            dir (bool): 1 or 0.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+        """
+        return self._set_motion_dir(dir)
+
+    def get_iwdg_cyc(self):
+        u"""see the set_iwdg_cyc.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            cyc (int): Cycle time.
+        """
+        return self._get_iwdg_cyc()
+
+    def set_iwdg_cyc(self, cyc):
+        u"""Set the maximum interval of broadcast read commands. The unit of time is torque cycle.
+        When reading actuator data in broadcast mode,
+        you must send a broadcast read command within the specified period.
+        If the communication interruption period exceeds the specified period, the actuator reports an error.
+        If this function is not required, set it to 0 to disable it.
+        Unit of period: 1 / CurrentCycle(Normal is 20 KHZ).
+
+        For example, because the control cycle of the torque loop is 20KHz,
+        if the communication detection cycle is set to 10000 and the actuator data is obtained through broadcast,
+        the instruction of actuator data acquisition through broadcast must be continuously used,
+        and the interval must be less than 0.5 seconds (10000/20khz).
+        If the communication detection period is set to 0, the broadcast instruction can be used discontinuously.
+
+        Args:
+            cyc (int): Cycle time.
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
-        return self._set_motion_dir(dir)
+        return self._set_iwdg_cyc(cyc)
 
     def get_temp_limit(self):
-        """Get the temperature limit threshold
+        u"""Get the temperature limit threshold.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            min (int): Minimum temperature alarm threshold
-            max (int): Maximum temperature alarm threshold
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            min (int): Minimum temperature alarm threshold.
+            max (int): Maximum temperature alarm threshold.
         """
         return self._get_temp_limit()
 
     def set_temp_limit(self, min, max):
-        """Set the temperature limit threshold,
+        u"""Set the temperature limit threshold,
         the minimum alarm threshold range [-20, 90],
-        the maximum alarm threshold range [-20, 90], in degrees Celsius
+        the maximum alarm threshold range [-20, 90], in degrees Celsius.
 
         Args:
-            min (int): Minimum temperature alarm threshold
-            max (int): Maximum temperature alarm threshold
+            min (int): Minimum temperature alarm threshold.
+            max (int): Maximum temperature alarm threshold.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_temp_limit(min, max)
 
     def get_volt_limit(self):
-        """Get the voltage limit threshold
+        u"""Get the voltage limit threshold.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            min (int): Minimum voltage alarm threshold
-            max (int): Maximum voltage alarm threshold
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            min (int): Minimum voltage alarm threshold.
+            max (int): Maximum voltage alarm threshold.
         """
         return self._get_volt_limit()
 
     def set_volt_limit(self, min, max):
-        """Set the voltage limit threshold,
+        u"""Set the voltage limit threshold,
         the minimum alarm threshold range [18, 55],
-        the maximum alarm threshold range [18, 55], unit volt
+        the maximum alarm threshold range [18, 55], unit volt.
 
         Args:
-            min (int): Minimum voltage alarm threshold
-            max (int): Maximum voltage alarm threshold
+            min (int): Minimum voltage alarm threshold.
+            max (int): Maximum voltage alarm threshold.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_volt_limit(min, max)
 
     def get_curr_limit(self):
-        """Get current limit threshold
+        u"""Get current limit threshold.(Not released yet, waiting for update).
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value (float): Maximum current alarm threshold
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            value (float): Maximum current alarm threshold.
         """
         return self._get_curr_limit()
 
     def set_curr_limit(self, value):
-        """Set current limit threshold
+        u"""Set current limit threshold.(Not released yet, waiting for update).
 
         Args:
-            value (float): Maximum current alarm threshold
+            value (float): Maximum current alarm threshold.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_curr_limit(value)
 
@@ -260,126 +293,146 @@ class AdraApiBase(_ServoApiBase):
     ############################################################
 
     def get_motion_mode(self):
-        """Get the operating mode
+        u"""Get the operating mode
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            mode (int): operating mode of the arm
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            mode (int): operating mode of the actuator.
                 1: Position mode
                 2: Speed ​​mode
                 3: Torque mode
-                4: Mixed mode
         """
         return self._get_motion_mode()
 
     def set_motion_mode(self, mode):
-        """Set the operating mode
-        When the motion mode is set, the device will deactivate the motion enable and need to re-enable the motion
+        u"""Set the operating mode.
+        When the motion mode is set, the actuator is automatically disabled and need to re-enable the motion.
 
         Args:
-            mode (int): operating mode of the arm
+            mode (int): operating mode of the actuator.
                 1: Position mode
                 2: Speed ​​mode
                 3: Torque mode
-                4: Mixed mode
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_motion_mode(mode)
 
+    def into_motion_mode_pos(self):
+        return self.set_motion_mode(1)
+
+    def into_motion_mode_vel(self):
+        return self.set_motion_mode(2)
+
+    def into_motion_mode_tau(self):
+        return self.set_motion_mode(3)
+
     def get_motion_enable(self):
-        """Get motion enable status
+        u"""Get motion enable status
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            enable (bool): 0 Disable servo, 1 Enable servo
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            enable (bool): 0 Disable servo, 1 Enable servo.
         """
         return self._get_motion_enable()
 
     def set_motion_enable(self, enable):
-        """Set motion enable status
+        u"""Set motion enable status.
 
         Args:
-            enable (bool): 0 Disable servo, 1 Enable servo
+            enable (bool): 0 Disable servo, 1 Enable servo.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_motion_enable(enable)
 
+    def into_motion_enable(self):
+        return self.set_motion_enable(1)
+
+    def into_motion_disable(self):
+        return self.set_motion_enable(0)
+
     def get_brake_enable(self):
-        """Get brake enable status
+        u"""Get brake enable status.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            enable (bool): 0 Disable brake, 1 Enable brake
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            enable (bool): 0 Disable brake, 1 Enable brake.
         """
         return self._get_brake_enable()
 
     def set_brake_enable(self, enable):
-        """Set the brake enable state, enable the brake separately, and operate this register only when the motion is disabled,
-        because the brake is automatically opened in the motion enable state.
+        u"""Set the brake enable status, enable the brake separately,
+        and operate this register only when the motion is disabled,
+        because the brake is automatically opened in the motion enable status.
 
         Args:
-            enable (bool): 0 Disable brake, 1 Enable brake
+            enable (bool): 0 Disable brake, 1 Enable brake.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_brake_enable(enable)
 
+    def into_brake_enable(self):
+        return self.set_brake_enable(1)
+
+    def into_brake_disable(self):
+        return self.set_brake_enable(0)
+
     def get_temp_driver(self):
-        """Get drive temperature
+        u"""Get drive temperature.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            temp (float): temperature [degrees Celsius]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            temp (float): temperature [degrees Celsius].
         """
         return self._get_temp_driver()
 
     def get_temp_motor(self):
-        """Get drive motor
+        u"""Get drive motor.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            temp (float): temperature [degrees Celsius]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            temp (float): temperature [degrees Celsius].
         """
         return self._get_temp_motor()
 
     def get_bus_volt(self):
-        """Get bus voltage
+        u"""Get bus voltage.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            volt (float): volt [V]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            volt (float): volt [V].
         """
         return self._get_bus_volt()
 
     def get_bus_curr(self):
-        """Get bus current
+        u"""Get bus current.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            current (float): current [A]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            current (float): current [A].
         """
         return self._get_bus_curr()
 
     def get_multi_volt(self):
-        """Get battery voltage of multi-turn encoder
+        u"""Get battery voltage of multi-turn encoder.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            volt (float): volt [V]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            volt (float): volt [V].
         """
         return self._get_multi_volt()
 
     def get_error_code(self):
-        """Get error code, the meaning of the fault code is referred to the appendix <fault code>
+        u"""Get error code, the meaning of the fault code is referred to the appendix <fault code>.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            code (int): error code
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            code (int): error code.
         """
         return self._get_error_code()
 
@@ -388,168 +441,168 @@ class AdraApiBase(_ServoApiBase):
     ############################################################
 
     def get_pos_target(self):
-        """Get target position
+        u"""Get target position.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): target position [rad]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pos (float): target position [rad].
         """
         return self._get_pos_target()
 
     def set_pos_target(self, pos):
-        """Set target position
+        u"""Set target position.
 
         Args:
-            pos (float): target position [rad]
+            pos (float): target position [rad].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_target(pos)
 
     def get_pos_current(self):
-        """Get current position
+        u"""Get current position.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): current position [rad]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pos (float): current position [rad].
         """
         return self._get_pos_current()
 
     def get_pos_limit_min(self):
-        """Get the minimum limit threshold of the position in position mode
+        u"""Get the minimum limit threshold of the position in position mode.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): position [rad]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pos (float): position [rad].
         """
         return self._get_pos_limit_min()
 
     def set_pos_limit_min(self, pos):
-        """Set the minimum limit threshold of the position in position mode,
-        other modes such as speed mode and current mode do not work
+        u"""Set the minimum limit threshold of the position in position mode,
+        other modes such as speed mode and current mode do not work.
 
         Args:
-            pos (float): position [rad]
+            pos (float): position [rad].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_limit_min(pos)
 
     def get_pos_limit_max(self):
-        """Get the maximum limit threshold of the position in position mode
+        u"""Get the maximum limit threshold of the position in position mode.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): position [rad]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pos (float): position [rad].
         """
         return self._get_pos_limit_max()
 
     def set_pos_limit_max(self, pos):
-        """Set the maximum limit threshold of the position in position mode,
-        other modes such as speed mode and current mode do not work
+        u"""Set the maximum limit threshold of the position in position mode,
+        other modes such as speed mode and current mode do not work.
 
         Args:
-            pos (float): position [rad]
+            pos (float): position [rad].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_limit_max(pos)
 
     def get_pos_limit_diff(self):
-        """Get the maximum position following error threshold in position mode
+        u"""Gets the maximum tracking error threshold for position mode.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): position [rad]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pos (float): position error [rad].
         """
         return self._get_pos_limit_diff()
 
     def set_pos_limit_diff(self, pos):
-        """Set the maximum position following error threshold in position mode,
-        the tracking error alarm threshold of the current position and the target position,
-        other modes such as speed mode and current mode do not work
+        u"""Sets the maximum tracking error threshold for position mode.
+        In the position mode, the tracking error alarm threshold of the current position and the target position,
+        other modes such as speed mode and current mode do not work, the unit is radians.
 
         Args:
-            pos (float): position [rad]
+            pos (float): position error [rad].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_limit_diff(pos)
 
     def get_pos_pidp(self):
-        """Get position loop control parameter P
+        u"""Get position loop control parameter P.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            p (float): parameter P
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            p (float): parameter P.
         """
         return self._get_pos_pidp()
 
     def set_pos_pidp(self, p):
-        """Get position loop control parameter P
+        u"""Get position loop control parameter P.
 
         Args:
-            p (float): parameter P
+            p (float): parameter P.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_pidp(p)
 
     def get_pos_smooth_cyc(self):
-        """Get smoothing filter period of the position loop
+        u"""Get smoothing filter period of the position loop.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            cyc (int): smoothing period [1-125]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            cyc (int): smoothing period [1-125].
         """
         return self._get_pos_smooth_cyc()
 
     def set_pos_smooth_cyc(self, cyc):
-        """Set smoothing filter period of the position loop. The larger the smoothing period,
-        the smoother the movement and the slower the response. The range is 1 to 125
+        u"""Set smoothing filter period of the position loop. The smoothing filter period of the position loop.
+        The larger the smoothing period, the smoother the movement and the slower the response. The range is 1 to 125.
 
         Args:
-            cyc (int): smoothing period [1-125]
+            cyc (int): smoothing period [1-125].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_smooth_cyc(cyc)
 
     def get_pos_adrc_param(self, i):
-        """Get speed loop ADRC parameters
+        u"""Get speed loop ADRC parameters.
 
         Args:
-            i ([int]): Adrc has many parameters, which parameter needs to be get
+            i ([int]): Adrc has many parameters, which parameter needs to be get.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value (float): parameter Adrc
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            value (float): parameter Adrc.
         """
         return self._get_pos_adrc_param(i)
 
     def set_pos_adrc_param(self, i, param):
-        """Set position loop ADRC parameters
+        u"""Set position loop ADRC parameters.
 
         Args:
-            i ([int]): Adrc has many parameters, which parameter needs to be set
+            i ([int]): Adrc has many parameters, which parameter needs to be set.
             param ([type]): [description]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_pos_adrc_param(i, param)
 
     def pos_cal_zero(self):
-        """Set current position as mechanical zero, after the operation, the user needs to restart the device
+        u"""Set current position as mechanical zero, after the operation, the user needs to restart the device.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._pos_cal_zero()
 
@@ -558,180 +611,182 @@ class AdraApiBase(_ServoApiBase):
     ############################################################
 
     def get_vel_target(self):
-        """Get target speed
+        u"""Get target speed.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            vel (float): speed [rad/s]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            vel (float): speed [rad/s].
         """
         return self._get_vel_target()
 
     def set_vel_target(self, vel):
-        """Set target speed
+        u"""Set target speed.
 
         Args:
-            vel (float): speed [rad/s]
+            vel (float): speed [rad/s].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_target(vel)
 
     def get_vel_current(self):
-        """Get current speed
+        u"""Get current speed.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            vel (float): speed [rad/s]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            vel (float): speed [rad/s].
         """
         return self._get_vel_current()
 
     def get_vel_limit_min(self):
-        """Get the minimum limit of the speed in speed mode and position mode
+        u"""Get the minimum limit of the speed in speed mode and position mode.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            vel (float): speed [rad/s]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            vel (float): speed [rad/s].
         """
         return self._get_vel_limit_min()
 
     def set_vel_limit_min(self, vel):
-        """Set the minimum limit of the speed in speed mode and position mode,
-        other modes such as current mode do not work
+        u"""Set the minimum limit of the speed in speed mode and position mode,
+        other modes such as current mode do not work.
 
         Args:
-            vel (float): speed [rad/s]
+            vel (float): speed [rad/s].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_limit_min(vel)
 
     def get_vel_limit_max(self):
-        """Get maximum limit of the speed in speed mode and position mode
+        u"""Get maximum limit of the speed in speed mode and position mode.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            vel (float): speed [rad/s]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            vel (float): speed [rad/s].
         """
         return self._get_vel_limit_max()
 
     def set_vel_limit_max(self, vel):
-        """Set maximum limit of the speed in speed mode and position mode,
-        other modes such as current mode do not work
+        u"""Set maximum limit of the speed in speed mode and position mode,
+        other modes such as current mode do not work.
 
         Args:
-            vel (float): speed [rad/s]
+            vel (float): speed [rad/s].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_limit_max(vel)
 
     def get_vel_limit_diff(self):
-        """Get the maximum speed following error threshold in the speed mode
+        u"""Get the maximum speed following error threshold in the speed mode.
+        (Not released yet, waiting for update).
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            vel (float): speed [rad/s]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            vel (float): speed [rad/s].
         """
         return self._get_vel_limit_diff()
 
     def set_vel_limit_diff(self, vel):
-        """Set the maximum speed following error threshold in the speed mode,
+        u"""Set the maximum speed following error threshold in the speed mode,
         the tracking error alarm threshold of the current spped and the target speed,
-        other modes such as position mode and current mode do not work
+        other modes such as position mode and current mode do not work.
+        (Not released yet, waiting for update)
 
         Args:
-            vel (float): speed [rad/s]
+            vel (float): speed [rad/s].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_limit_diff(vel)
 
     def get_vel_pidp(self):
-        """Get speed loop control parameter P
+        u"""Get speed loop control parameter P.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            p (float): parameter P
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            p (float): parameter P.
         """
         return self._get_vel_pidp()
 
     def set_vel_pidp(self, p):
-        """Set speed loop control parameter P
+        u"""Set speed loop control parameter P.
 
         Args:
-            p (float): parameter P
+            p (float): parameter P.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_pidp(p)
 
     def get_vel_pidi(self):
-        """Get speed loop control parameter I
+        u"""Get speed loop control parameter I.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pid_i (float): parameter pid_i
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pid_i (float): parameter pid_i.
         """
         return self._get_vel_pidi()
 
     def set_vel_pidi(self, pid_i):
-        """Set speed loop control parameter I
+        u"""Set speed loop control parameter I.
 
         Args:
-            pid_i (float): parameter pid_i
+            pid_i (float): parameter pid_i.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_pidi(pid_i)
 
     def get_vel_smooth_cyc(self):
-        """Get smoothing filter period of the speed loop
+        u"""Get smoothing filter period of the speed loop.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            cyc (int): smoothing period [1-125]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            cyc (int): smoothing period [1-125].
         """
         return self._get_vel_smooth_cyc()
 
     def set_vel_smooth_cyc(self, cyc):
-        """Set smoothing filter period of the speed loop. The larger the smoothing period,
-        the smoother the movement and the slower the response. The range is 1 to 125
+        u"""Set smoothing filter period of the speed loop. The larger the smoothing period,
+        the smoother the movement and the slower the response. The range is 1 to 125.
 
         Args:
-            cyc (int): smoothing period [1-125]
+            cyc (int): smoothing period [1-125].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_smooth_cyc(cyc)
 
     def get_vel_adrc_param(self, i):
-        """Get speed loop ADRC parameters
+        u"""Get speed loop ADRC parameters.
 
         Args:
-            i ([int]): Adrc has many parameters, which parameter needs to be get
+            i ([int]): Adrc has many parameters, which parameter needs to be get.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value (float): parameter Adrc
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            value (float): parameter Adrc.
         """
         return self._get_vel_adrc_param(i)
 
     def set_vel_adrc_param(self, i, param):
-        """Set speed loop ADRC parameters
+        u"""Set speed loop ADRC parameters.
 
         Args:
-            i ([int]): Adrc has many parameters, which parameter needs to be set
-            param ([type]): [description]
+            i ([int]): Adrc has many parameters, which parameter needs to be set.
+            param ([type]): [description].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_adrc_param(i, param)
 
@@ -740,177 +795,258 @@ class AdraApiBase(_ServoApiBase):
     ############################################################
 
     def get_tau_target(self):
-        """Get target current
+        u"""Get target torque.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            tau (float): target current [A]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            tau (float): target torque [N.m].
         """
         return self._get_tau_target()
 
     def set_tau_target(self, tau):
-        """Set target current
+        u"""Set target torque.
 
         Args:
-            tau (float): target current [A]
+            tau (float): target torque [N.m].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_target(tau)
 
     def get_tau_current(self):
-        """Get current current
+        u"""Get torque torque.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            tau (float): current current [A]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            tau (float): current torque [N.m].
         """
         return self._get_tau_current()
 
     def get_tau_limit_min(self):
-        """Get the minimum limit threshold of the current
+        u"""Get the minimum limit threshold of the torque.
+        (Not released yet, waiting for update)
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            tau (float): current [A]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            tau (float): torque [N.m].
         """
         return self._get_tau_limit_min()
 
     def set_tau_limit_min(self, tau):
-        """Set the minimum limit threshold of the current, all modes are effective
+        u"""Set the minimum limit threshold of the torque, all modes are effective.
+        (Not released yet, waiting for update)
 
         Args:
-            tau (float): current [A]
+            tau (float): torque [N.m].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_limit_min(tau)
 
     def get_tau_limit_max(self):
-        """Get the maximum limit threshold of the current
+        u"""Get the maximum limit threshold of the torque.
+        (Not released yet, waiting for update)
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            tau (float): current [A]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            tau (float): torque [N.m].
         """
         return self._get_tau_limit_max()
 
     def set_tau_limit_max(self, tau):
-        """Set the maximum limit threshold of the current, all modes are effective
+        u"""Set the maximum limit threshold of the torque, all modes are effective.
+        (Not released yet, waiting for update)
 
         Args:
-            tau (float): current [A]
+            tau (float): torque [N.m].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_limit_max(tau)
 
     def get_tau_limit_diff(self):
-        """Get the maximum current following error threshold in the current mode
+        u"""Get the maximum torque following error threshold in the torque mode.
+        (Not released yet, waiting for update)
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            tau (float): current [A]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            tau (float): torque [N.m].
         """
         return self._get_tau_limit_diff()
 
     def set_tau_limit_diff(self, value):
-        """Set the maximum current following error threshold in the current mode,
-        the tracking error alarm threshold of the current current and the target current,
-        other modes such as position mode and speed mode do not work
+        u"""Set the maximum torque following error threshold in the torque mode,
+        the tracking error alarm threshold of the current torque and the target torque,
+        other modes such as position mode and speed mode do not work.
+        (Not released yet, waiting for update)
 
         Args:
-            tau (float): current [A]
+            tau (float): torque [N.m].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_limit_diff(value)
 
     def get_tau_pidp(self):
-        """Get current loop control parameter P
+        u"""Get torque loop control parameter P.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pid_p (float): parameter P
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pid_p (float): parameter P.
         """
         return self._get_tau_pidp()
 
     def set_tau_pidp(self, pid_p):
-        """Set current loop control parameter P
+        u"""Set torque loop control parameter P.
 
         Args:
-            pid_p (float): parameter P
+            pid_p (float): parameter P.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_pidp(pid_p)
 
     def get_tau_pidi(self):
-        """Get current loop control parameter I
+        u"""Get torque loop control parameter I.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pid_i (float): parameter I
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pid_i (float): parameter I.
         """
         return self._get_tau_pidi()
 
     def set_tau_pidi(self, pid_i):
-        """Set current loop control parameter I
+        u"""Set torque loop control parameter I.
 
         Args:
-            pid_i (float): parameter I
+            pid_i (float): parameter I.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_pidi(pid_i)
 
     def get_tau_smooth_cyc(self):
-        """Get smoothing filter period of the current loop
+        u"""Get smoothing filter period of the torque loop.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            cyc (int): smoothing period [1-125]
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            cyc (int): smoothing period [1-125].
         """
         return self._get_tau_smooth_cyc()
 
     def set_tau_smooth_cyc(self, value):
-        """Set smoothing filter period of the current loop. The larger the smoothing period,
-        the smoother the movement and the slower the response. The range is 1 to 125
+        u"""Set smoothing filter period of the torque loop. The larger the smoothing period,
+        the smoother the movement and the slower the response. The range is 1 to 125.
 
         Args:
-            cyc (int): smoothing period [1-125]
+            cyc (int): smoothing period [1-125].
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_smooth_cyc(value)
 
     def get_tau_adrc_param(self, i):
-        """Get current loop ADRC parameters
+        u"""Get torque loop ADRC parameters.
 
         Args:
-            i ([int]): Adrc has many parameters, which parameter needs to be get
+            i (int): Adrc has many parameters, which parameter needs to be get.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value (float): parameter Adrc
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            value (float): parameter Adrc.
         """
         return self._get_tau_adrc_param(i)
 
     def set_tau_adrc_param(self, i, param):
-        """Set current loop ADRC parameters
+        u"""Set torque loop ADRC parameters.
 
         Args:
-            i ([int]): Adrc has many parameters, which parameter needs to be set
-            param ([type]): [description]
+            i (int): Adrc has many parameters, which parameter needs to be set.
+            param (type): [description]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_tau_adrc_param(i, param)
+
+    ############################################################
+    #                       Advanced Api
+    ############################################################
+    def set_cpos_target(self, sid, eid, pos):
+        u"""Broadcast mode (one packet) sets multiple actuator target positions.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+            pos (list): Target position of actuators, in ascending order of ID number.
+
+        Returns:
+            ret (int): meaningless.
+        """
+        return self._set_cpos_target(sid, eid, pos)
+
+    def set_ctau_target(self, sid, eid, tau):
+        u"""Broadcast mode (one packet) sets multiple actuator target torque.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+            tau (list): Target torque of actuators, in ascending order of ID number.
+
+        Returns:
+            ret (int): meaningless.
+        """
+        return self._set_ctau_target(sid, eid, tau)
+
+    def set_cpostau_target(self, sid, eid, pos, tau):
+        u"""Broadcast mode (one packet) sets multiple actuator target torque and feedforward torques.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+            pos (list): Target position of actuators, in ascending order of ID number.
+            tau (list): Feedforward torque of actuators, in ascending order of ID number.
+
+        Returns:
+            ret (int): meaningless.
+        """
+        return self._set_cpostau_target(sid, eid, pos, tau)
+
+    def get_spostau_current(self):
+        u"""Gets the current position of the actuator, the current torque, and number of write broadcasts received.
+        At the same time, the number of received broadcast write commands is cleared to zero.
+
+        Args:
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            pos (int): Current position of actuators.
+            tau (int): Current torque of actuators.
+            num (int): Cnumber of write broadcasts received.
+        """
+        return self._get_spostau_current()
+
+    def get_cpostau_current(self, sid, eid):
+        u"""Broadcast mode (one packet) gets multiple actuator current position,
+        current torque, and number of write broadcasts received.
+        At the same time, the number of received broadcast write commands is cleared to zero.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+
+        Returns:
+            ret (list): Function execution result code, refer to appendix for code meaning,
+                        in ascending order of ID number.
+            pos (list): Current position of actuators, in ascending order of ID number.
+            tau (list): Current torque of actuators, in ascending order of ID number.
+            num (list): Cnumber of write broadcasts received, in ascending order of ID number.
+        """
+        return self._get_cpostau_current(sid, eid)

@@ -13,6 +13,11 @@ from utapi.common import print_msg
 
 
 def main():
+    u"""
+    This is demo to get the state and parameters of the actuator.
+    The actuator ID is 1 and RS485 baud rate is 921600.
+    Linux requires super user privileges to run code.
+    """
     adra = AdraApiSerial("/dev/ttyUSB0", 921600)
     adra.connect_to_id(1)
 
@@ -23,7 +28,7 @@ def main():
     ret, version = adra.get_hw_version()
     print("[%d]get_hw_version: %d, version = %s" % (adra.virid, ret, version))
     ret, version = adra.get_multi_version()
-    print("[%d]get_multi_version: %d, version = %s" % (adra.virid, ret, version))
+    print("[%d]get_mt_version: %d, version = %s" % (adra.virid, ret, version))
     ret, value = adra.get_mech_ratio()
     print("[%d]get_mech_ratio: %d, value = %d" % (adra.virid, ret, value))
     print(" ")
@@ -32,6 +37,8 @@ def main():
     print("[%d]get_elec_ratio: %d, value = %d" % (adra.virid, ret, value))
     ret, value = adra.get_motion_dir()
     print("[%d]get_motion_dir: %d, value = %d" % (adra.virid, ret, value))
+    ret, value = adra.get_iwdg_cyc()
+    print("[%d]set_iwdg_cyc  : %d, value = %d" % (adra.virid, ret, value))
     ret, min, max = adra.get_temp_limit()
     print("[%d]get_temp_limit: %d, value = %d %d" % (adra.virid, ret, min, max))
     ret, min, max = adra.get_volt_limit()
@@ -78,10 +85,6 @@ def main():
     print("[%d]get_tau_limit_max : %d, value = %f" % (adra.virid, ret, value))
     ret, value = adra.get_tau_limit_diff()
     print("[%d]get_tau_limit_diff: %d, value = %f" % (adra.virid, ret, value))
-    print(" ")
-
-    ret, value = adra.get_debug_mode()
-    print("[%d]get_debug_mode: %d, value = %d" % (adra.virid, ret, value))
     print(" ")
 
     ret, value = adra.get_pos_target()

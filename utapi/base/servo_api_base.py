@@ -4,7 +4,7 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common.utrc import UTRC_RW
+from common.utrc import UTRC_RW, UTRC_RX_ERROR
 from common import hex_data
 from base.servo_reg import SERVO_REG
 import threading
@@ -437,3 +437,109 @@ class _ServoApiBase:
         txdata += hex_data.fp32_to_bytes_big(float(param))
         ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.TAU_ADRC_PARAM, txdata)
         return ret
+
+    ############################################################
+    #                       Developer Api
+    ############################################################
+
+    def _set_cpos_target(self, sid, eid, pos):
+        id = self.id
+        self.connect_to_id(0x55, 0x55)
+
+        num = eid - sid + 1
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        txdata += hex_data.fp32_to_bytes_big(pos, num)
+        SERVO_REG.CPOS_TARGET[3] = 2 + 4 * num
+        self.mutex.acquire()
+        self._send(UTRC_RW.W, SERVO_REG.CPOS_TARGET, txdata)
+        self.mutex.release()
+
+        self.connect_to_id(id, id)
+        return 0
+
+    def _set_ctau_target(self, sid, eid, tau):
+        id = self.id
+        self.connect_to_id(0x55, 0x55)
+
+        num = eid - sid + 1
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        txdata += hex_data.fp32_to_bytes_big(tau, num)
+        SERVO_REG.CTAU_TARGET[3] = 2 + 4 * num
+        self.mutex.acquire()
+        self._send(UTRC_RW.W, SERVO_REG.CTAU_TARGET, txdata)
+        self.mutex.release()
+
+        self.connect_to_id(id, id)
+        return 0
+
+    def _set_cpostau_target(self, sid, eid, pos, tau):
+        id = self.id
+
+        num = (eid - sid + 1)
+        postau = [0] * num * 2
+        for i in range(num):
+            postau[i * 2] = pos[i]
+            postau[i * 2 + 1] = tau[i]
+
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        txdata += hex_data.fp32_to_bytes_big(postau, num * 2)
+        SERVO_REG.CPOSTAU_TARGET[3] = 4 * num * 2 + 2
+
+        self.mutex.acquire()
+        self.connect_to_id(0x55, 0x55)
+        self._send(UTRC_RW.W, SERVO_REG.CPOSTAU_TARGET, txdata)
+        self.mutex.release()
+
+        self.connect_to_id(id, id)
+        return 0
+
+    def _get_spostau_current(self):
+        self.mutex.acquire()
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.SPOSTAU_CURRENT, None)
+        self.mutex.release()
+
+        if ret == UTRC_RX_ERROR.TIMEOUT:
+            num = 0
+            pos = 0
+            tau = 0
+        else:
+            num = hex_data.bytes_to_int8(bus_rmsg.data[0])
+            pos = hex_data.bytes_to_fp32_big(bus_rmsg.data[1:5])
+            tau = hex_data.bytes_to_fp32_big(bus_rmsg.data[5:9])
+        return ret, num, pos, tau
+
+    def _get_cpostau_current(self, sid, eid):
+        id = self.id
+        num = (eid - sid + 1)
+
+        ret = [0] * num
+        broadcast_num = [0] * num
+        pos = [0] * num
+        tau = [0] * num
+
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        self.mutex.acquire()
+        self.connect_to_id(0x55, 0x55)
+        self._send(UTRC_RW.R, SERVO_REG.CPOSTAU_CURRENT, txdata)
+        for i in range(num):
+            ret[i], bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.CPOSTAU_CURRENT)
+            # if (bus_rmsg.master_id != i + 1):
+            #    ret[i] = UTRC_RX_ERROR.TIMEOUT
+
+            if ret[i] == UTRC_RX_ERROR.TIMEOUT:
+                broadcast_num[i] = 0
+                pos[i] = 0
+                tau[i] = 0
+            else:
+                broadcast_num[i] = hex_data.bytes_to_int8(bus_rmsg.data[0])
+                pos[i] = hex_data.bytes_to_fp32_big(bus_rmsg.data[1:5])
+                tau[i] = hex_data.bytes_to_fp32_big(bus_rmsg.data[5:9])
+
+        self.connect_to_id(id, id)
+        self.mutex.release()
+
+        return ret, broadcast_num, pos, tau

@@ -123,7 +123,7 @@ class UtrcClient:
         ret = rx_utrc.unpack(rx_data)
         if ret != 0:
             return (ret, rx_utrc)
-        elif rx_utrc.master_id != tx_utrc.slave_id:
+        elif rx_utrc.master_id != tx_utrc.slave_id and tx_utrc.slave_id != 0x55:
             print("[UtrcCli] Error: UTRC_RX_ERROR.M_ID: %d %d" % (rx_utrc.master_id, tx_utrc.slave_id))
             ret = UTRC_RX_ERROR.M_ID
         elif rx_utrc.slave_id != tx_utrc.master_id:
@@ -184,7 +184,7 @@ class UtrcDecode:
             # print_msg.nhex(self.DB_FLG, rxch, 1)
             # print('state:%d' % (self.rxstate))
             if UX2HEX_RXSTART.FROMID == self.rxstate:
-                if self.fromid == rxch[0]:
+                if self.fromid == rxch[0] or self.fromid == 0x55:
                     self.rxbuf = rxch
                     self.rxstate = UX2HEX_RXSTART.TOID
 

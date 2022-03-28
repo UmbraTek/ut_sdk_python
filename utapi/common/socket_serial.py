@@ -11,13 +11,12 @@ from common import print_msg
 
 
 class SocketSerial(threading.Thread):
-
     def __init__(self, port, baud, bus_decode=-1, rxque_max=10):
         self.DB_FLG = "[SockeSer] "
         try:
             self.rx_que = queue.Queue(rxque_max)
             self.rx_decoder = bus_decode
-            self.com = serial.Serial(port=port, baudrate=baud)
+            self.com = serial.Serial(port=port, baudrate=baud, timeout=0, inter_byte_timeout=0.000001)
             if not self.com.isOpen():
                 self.is_err = 1
                 return
@@ -86,9 +85,9 @@ class SocketSerial(threading.Thread):
         print(self.DB_FLG + "recv_proc thread start")
         try:
             while self.is_err == 0:
-                rxch = self.com.read(1)
-                # print("r:", time.time())
-                # print(rxch)
+                rxch = self.com.read()
+                if (len(rxch) <= 0):
+                    continue
                 if self.rx_decoder == -1:
                     if self.rx_que.full():
                         self.rx_que.get()

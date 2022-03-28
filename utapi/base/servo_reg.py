@@ -70,10 +70,8 @@ class SERVO_REG:
     TAU_ADRC_PARAM = [0x59, 1, 4, 5, 0]
     TAU_SMOOTH_CYC = [0x57, 0, 1, 1, 0]
 
-
-def rad_to_int(a):
-    return int(a * 100000)
-
-
-def int_to_rad(a):
-    return float(a) * 0.00001
+    CPOS_TARGET = [0x60, null, null, 0, null]  # startId endId pos*Axis
+    CTAU_TARGET = [0x61, null, null, 0, null]  # startId endId tau*Axis
+    CPOSTAU_TARGET = [0x62, null, null, 0, null]  # startId endId (pos+tau)*Axis
+    SPOSTAU_CURRENT = [0x68, 0, 8 + 1, null, null]  # Gets the current position and torque of an actuator
+    CPOSTAU_CURRENT = [0x69, 2, 8 + 1, null, null]  # startId endId
