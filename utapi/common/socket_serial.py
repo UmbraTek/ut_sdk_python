@@ -16,7 +16,7 @@ class SocketSerial(threading.Thread):
         try:
             self.rx_que = queue.Queue(rxque_max)
             self.rx_decoder = bus_decode
-            self.com = serial.Serial(port=port, baudrate=baud, timeout=0, inter_byte_timeout=0.000001)
+            self.com = serial.Serial(port=port, baudrate=baud)
             if not self.com.isOpen():
                 self.is_err = 1
                 return
