@@ -29,7 +29,7 @@ class ArmReportConfig(threading.Thread):
         self.collis_sens = 0
         self.teach_sens = 0
 
-        self.__socekt_fp = SocketTcp(ip, port, 32)
+        self.__socekt_fp = SocketTcp(ip, port, -1, 32)
         if self.__socekt_fp.is_error() != 0:
             print("[UbotRConf] Error: SocketTcp failed, ip: %s, port: %d" % (ip, port))
             return -1

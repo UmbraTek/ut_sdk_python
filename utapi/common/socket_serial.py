@@ -7,6 +7,7 @@
 import queue
 import threading
 import serial
+import time
 from common import print_msg
 
 
@@ -85,7 +86,7 @@ class SocketSerial(threading.Thread):
         print(self.DB_FLG + "recv_proc thread start")
         try:
             while self.is_err == 0:
-                rxch = self.com.read()
+                rxch = self.com.read(1)
                 if (len(rxch) <= 0):
                     continue
                 if self.rx_decoder == -1:

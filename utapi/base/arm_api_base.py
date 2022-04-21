@@ -436,7 +436,7 @@ class _ArmApiBase:
             pose1 (list): path cartesian position 1 [mm mm mm rad rad rad]
             pose2 (list): path cartesian position 2 [mm mm mm rad rad rad]
             mvvelo (float): tool speed [m/s]
-            mvacc (float): tool acceleration [mm/sˆ2]
+            mvacc (float): tool acceleration [mm/s^2]
             mvtime (float): NOT used in current version
             percent (float): The length of the trajectory, the unit is a percentage of the circumference,
                               which can be tens of percent or hundreds of percent
@@ -510,7 +510,7 @@ class _ArmApiBase:
 
     def moveto_home_p2p(self, mvvelo, mvacc, mvtime):
         """Move to position of home (linear in joint-space) When using this command, the robot must be at a standstill
-            
+
         Args:
             mvvelo (float): joint speed of leading axis [rad/s]
             mvacc (float): joint acceleration of leading axis [rad/sˆ2]
@@ -1540,7 +1540,7 @@ class _ArmApiBase:
     def set_tgpio_digit_out(self, value):
         """Set the end-tool GPIO module to output digital I/O
         The higher 16 bits are the I/O to be set, and the lower 16 bits are the value to be set
-        
+
         Args:
             value (uint32_t): Digital I/O output value
                 For example: 0x00010001 => Set GPIO 1 to high
@@ -1634,7 +1634,7 @@ class _ArmApiBase:
     def set_cgpio_digit_out(self, value):
         """Set the controller GPIO module to output digital I/O
         The higher 16 bits are the I/O to be set, and the lower 16 bits are the value to be set
-        
+
         Args:
             value (uint32_t): Digital I/O output value
                 For example: 0x00010001 => Set GPIO 1 to high

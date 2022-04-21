@@ -102,6 +102,24 @@ class UtrcClient:
         self.port_fp = port_fp
         self.port_fp.flush()
 
+    def connect_device(self):
+        tx_utrc = UtrcType()
+        tx_utrc.master_id = 0xAA
+        tx_utrc.slave_id = 0x55
+        tx_utrc.state = 0
+        tx_utrc.len = 0x08
+        tx_utrc.rw = 0
+        tx_utrc.cmd = 0x7F
+        tx_utrc.data[0:8] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]
+
+        buf = tx_utrc.pack()
+        self.port_fp.flush(tx_utrc.slave_id, tx_utrc.master_id)
+        self.port_fp.write(buf)
+        ret, rx_utrc = self.pend(tx_utrc, 1, 1)
+        if ret != 0:
+            return ret
+        return 0
+
     def send(self, tx_utrc):
         buf = tx_utrc.pack()
         # tx_utrc.print_buf()
@@ -119,7 +137,7 @@ class UtrcClient:
         if rx_data == -1 or len(rx_data) < 6:
             return (ret, rx_utrc)
 
-        # print_msg.nhex("NetBus send_pend rx_data : ", rx_data, len(rx_data))
+        # print_msg.nhex("[UtrcCli] rx_data : ", rx_data, len(rx_data))
         ret = rx_utrc.unpack(rx_data)
         if ret != 0:
             return (ret, rx_utrc)
@@ -157,11 +175,7 @@ class UX2HEX_RXSTART:
 class UtrcDecode:
     def __init__(self, fromid, toid):
         self.DB_FLG = "[ux2 ptcl] "
-        self.rxstate = UX2HEX_RXSTART.FROMID
-        self.data_idx = 0
-        self.len = 0
-        self.fromid = fromid
-        self.toid = toid
+        self.flush(fromid, toid)
 
     # wipe cache , set from_id and to_id
     def flush(self, fromid=-1, toid=-1):
@@ -182,7 +196,7 @@ class UtrcDecode:
         for i in range(length):
             rxch = bytes([rxstr[i]])
             # print_msg.nhex(self.DB_FLG, rxch, 1)
-            # print('state:%d' % (self.rxstate))
+            # print('state:%d 0x%x' % (self.rxstate, self.fromid))
             if UX2HEX_RXSTART.FROMID == self.rxstate:
                 if self.fromid == rxch[0] or self.fromid == 0x55:
                     self.rxbuf = rxch

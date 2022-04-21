@@ -24,6 +24,11 @@ class UTCC_RX_ERROR():
         pass
 
 
+class UTCC_RW:
+    R = 0
+    W = 1
+
+
 class UtccType():
     def __init__(self):
         self.head = 0xAA
@@ -32,7 +37,7 @@ class UtccType():
         self.len = 0
         self.rw = 0
         self.cmd = 0
-        self.data = [0] * 7
+        self.data = [0] * 125
         self.crc = [0] * 2
 
         self.buf = bytes([0])
@@ -53,6 +58,7 @@ class UtccType():
     def unpack(self, buf):
         self.buf = buf
         if len(buf) < 7:
+            print("[UtccTyp] Error: UTCC_RX_ERROR.LEN: %d" % (len(buf)))
             return UTCC_RX_ERROR.LEN
 
         self.len = buf[3] & 0x0F
@@ -60,6 +66,7 @@ class UtccType():
         #    return UTCC_RX_ERROR.LEN
 
         if self.head != buf[0]:
+            print("[UtccTyp] Error: UTCC_RX_ERROR.HEAD: %d %d" % (self.head, buf[0]))
             return UTCC_RX_ERROR.HEAD
 
         id = hex_data.bytes_to_uint16_big(buf[1:3])
@@ -107,14 +114,16 @@ class UtccClient():
 
     def connect_device(self):
         tx_utcc = UtccType()
-        tx_utcc.state = 1
-        tx_utcc.id = 0x007F
-        tx_utcc.len = 1
-        tx_utcc.rw = 1
+        tx_utcc.head = 0xAA
+        tx_utcc.id = 0x0055
+        tx_utcc.state = 0
+        tx_utcc.len = 0x08
+        tx_utcc.rw = 0
         tx_utcc.cmd = 0x7F
-        buf = tx_utcc.pack()
-        self.port_fp.write(buf)
-        ret, rx_utcc = self.pend(tx_utcc, 0, 1)
+        tx_utcc.data[0:8] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]
+
+        self.send(tx_utcc)
+        ret, rx_utcc = self.pend(tx_utcc, 1, 2)
         if ret != 0:
             return ret
         return 0
@@ -125,7 +134,7 @@ class UtccClient():
         self.port_fp.write(buf)
         # print_msg.nhex("MxBus send_xbus buf : ", buf, len(buf))
 
-    def pend(self, tx_utcc, rx_len, timeout):
+    def _pend(self, tx_utcc, timeout):
         """
         timeout：ms
         """
@@ -135,20 +144,118 @@ class UtccClient():
         if rx_data == -1 or len(rx_data) < 7:
             return (ret, rx_utcc)
 
-        # print_msg.nhex("MxBus send_pend rx_data : ", rx_data, len(rx_data))
+        # print_msg.nhex("[UtccCil] rx_data : ", rx_data, len(rx_data))
         ret = rx_utcc.unpack(rx_data)
         if ret != 0:
             return (ret, rx_utcc)
         elif tx_utcc.id != rx_utcc.id:
-            print("tx_utcc.id = 0x%x, rx_utcc.id= 0x%x" % (tx_utcc.id, rx_utcc.id))
+            print("[UtccCil] Error: tx_utcc.id = 0x%x, rx_utcc.id= 0x%x" % (tx_utcc.id, rx_utcc.id))
             ret = UTCC_RX_ERROR.ID
         elif rx_utcc.state != 0:
             ret = UTCC_RX_ERROR.STATE
         elif tx_utcc.rw != rx_utcc.rw:
-            print("tx_utcc.rw: 0x%x, rx_utcc.rw: %x" % (tx_utcc.rw, rx_utcc.rw))
+            print("[UtccCil] Error: tx_utcc.rw: 0x%x, rx_utcc.rw: %x" % (tx_utcc.rw, rx_utcc.rw))
             ret = UTCC_RX_ERROR.RW
         elif tx_utcc.cmd != rx_utcc.cmd:
-            print("tx_utcc.cmd: 0x%x, rx_utcc.cmd: %x" % (tx_utcc.cmd, rx_utcc.cmd))
+            print("[UtccCil] Error: tx_utcc.cmd: 0x%x, rx_utcc.cmd: %x" % (tx_utcc.cmd, rx_utcc.cmd))
             ret = UTCC_RX_ERROR.CMD
 
         return (ret, rx_utcc)
+
+    def pend(self, tx_utcc, rx_len, timeout):
+        rx_utcc1 = -1
+        while(1):
+            ret, rx_utcc2 = self._pend(tx_utcc, timeout)
+            if ret != 0 and ret != UTCC_RX_ERROR.STATE:
+                return ret, rx_utcc2
+
+            if rx_utcc1 == -1:
+                rx_utcc1 = rx_utcc2
+            else:
+                rx_utcc1.data = rx_utcc1.data[0:rx_utcc1.len - 1] + rx_utcc2.data[0:rx_utcc2.len - 1]
+                rx_utcc1.len = rx_utcc1.len + rx_utcc2.len - 1
+
+            if rx_utcc1.len == rx_len + 1:
+                return ret, rx_utcc1
+
+
+class UTCC_RXSTART:
+    FROMID = 0
+    TOID1 = 1
+    TOID2 = 2
+    LEN = 3
+    DATA = 4
+    CRC1 = 5
+    CRC2 = 6
+    RXLEN_MAX = 64
+
+
+class UtccDecode:
+    def __init__(self, fromid, toid):
+        self.DB_FLG = "[utcc dec] "
+        self.flush(fromid, toid)
+
+    # wipe cache , set from_id and to_id
+    def flush(self, fromid=-1, toid=-1):
+        self.rxstate = UTCC_RXSTART.FROMID
+        self.data_idx = 0
+        self.len = 0
+        if fromid != -1:
+            self.fromid = fromid
+        if toid != -1:
+            self.toid = toid
+
+    def put(self, rxstr, length, rx_que):
+        if length == 0:
+            length = len(rxstr)
+        if len(rxstr) < length:
+            print(self.DB_FLG + "error: len(rxstr) < length")
+
+        for i in range(length):
+            rxch = bytes([rxstr[i]])
+            # print_msg.nhex(self.DB_FLG, rxch, 1)
+            # print('state:%d' % (self.rxstate))
+            if UTCC_RXSTART.FROMID == self.rxstate:
+                if self.fromid == rxch[0] or self.fromid == 0x55:
+                    self.rxbuf = rxch
+                    self.rxstate = UTCC_RXSTART.TOID1
+
+            elif UTCC_RXSTART.TOID1 == self.rxstate:
+                self.rxbuf += rxch
+                self.rxstate = UTCC_RXSTART.TOID2
+
+            elif UTCC_RXSTART.TOID2 == self.rxstate:
+                self.rxbuf += rxch
+                self.rxstate = UTCC_RXSTART.LEN
+
+            elif UTCC_RXSTART.LEN == self.rxstate:
+                if (rxch[0] & 0x7F) < UTCC_RXSTART.RXLEN_MAX:
+                    self.rxbuf += rxch
+                    self.len = rxch[0] & 0x7F
+                    self.data_idx = 0
+                    self.rxstate = UTCC_RXSTART.DATA
+                else:
+                    self.rxstate = UTCC_RXSTART.FROMID
+
+            elif UTCC_RXSTART.DATA == self.rxstate:
+                if self.data_idx < self.len:
+                    self.rxbuf += rxch
+                    self.data_idx += 1
+                    if self.data_idx == self.len:
+                        self.rxstate = UTCC_RXSTART.CRC1
+                else:
+                    self.rxstate = UTCC_RXSTART.FROMID
+
+            elif UTCC_RXSTART.CRC1 == self.rxstate:
+                self.rxbuf += rxch
+                self.rxstate = UTCC_RXSTART.CRC2
+
+            elif UTCC_RXSTART.CRC2 == self.rxstate:
+                self.rxbuf += rxch
+                self.rxstate = UTCC_RXSTART.FROMID
+                crc = crc16.crc_modbus(self.rxbuf[:self.len + 4])
+                if crc[0] == self.rxbuf[self.len + 4] and crc[1] == self.rxbuf[self.len + 5]:
+                    if rx_que.full():
+                        rx_que.get()
+                    rx_que.put(self.rxbuf)
+                    # print_msg.nhex("[SockSeri] rx_que.put: ", self.rxbuf, len(self.rxbuf))

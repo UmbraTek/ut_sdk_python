@@ -67,9 +67,9 @@ class _ServoApiBase:
     def __sendpend(self, rw, reg, tx_data):
         self.mutex.acquire()
         self._send(rw, reg, tx_data)
-        ret, utrc_rmsg = self._pend(rw, reg)
+        ret, bus_rmsg = self._pend(rw, reg)
         self.mutex.release()
-        return ret, utrc_rmsg
+        return ret, bus_rmsg
 
     def is_err(self):
         return self.__is_err
@@ -79,41 +79,41 @@ class _ServoApiBase:
     ############################################################
 
     def __get_reg_int8(self, reg, n=1, txdata=None):
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
         if n == 1:
-            value = hex_data.bytes_to_int8(utrc_rmsg.data[0], n)
+            value = hex_data.bytes_to_int8(bus_rmsg.data[0], n)
         else:
-            value = hex_data.bytes_to_int8(utrc_rmsg.data[0:n], n)
+            value = hex_data.bytes_to_int8(bus_rmsg.data[0:n], n)
         return ret, value
 
     def __set_reg_int8(self, reg, value, n=1):
         txdata = hex_data.int8_to_bytes_big(value, n)
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
         return ret
 
     def __set_reg_uint8(self, reg, value, n=1):
         txdata = hex_data.uint8_to_bytes_big(value, n)
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
         return ret
 
     def __get_reg_int32(self, reg, n=1, txdata=None):
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
-        value = hex_data.bytes_to_int32_big(utrc_rmsg.data, n)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
+        value = hex_data.bytes_to_int32_big(bus_rmsg.data, n)
         return ret, value
 
     def __set_reg_int32(self, reg, value, n=1):
         txdata = hex_data.int32_to_bytes_big(value, n)
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, reg, txdata)
         return ret
 
     def __get_reg_fp32(self, reg, n=1, txdata=None):
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
-        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data, n)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, reg, txdata)
+        value = hex_data.bytes_to_fp32_big(bus_rmsg.data, n)
         return ret, value
 
     def __set_reg_fp32(self, reg, value, n=1):
         datas = hex_data.fp32_to_bytes_big(value, n)
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, datas)
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, reg, datas)
         return ret
 
     ############################################################

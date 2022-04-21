@@ -12,11 +12,12 @@ from common import print_msg
 
 
 class SocketTcp(threading.Thread):
-    def __init__(self, ip, port, rxque_max=10, rxdata_len=1024):
+    def __init__(self, ip, port, bus_decode=-1, rxque_max=10, rxdata_len=1024):
         self.DB_FLG = "[SockeTcp] "
         try:
             self.rxdata_len = rxdata_len
             self.rx_que = queue.Queue(rxque_max)
+            self.rx_decoder = bus_decode
 
             socket.setdefaulttimeout(1)
             self.fp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,6 +50,14 @@ class SocketTcp(threading.Thread):
             return -1
         while not self.rx_que.empty():
             self.rx_que.get()
+        if self.rx_decoder != -1:
+            self.rx_decoder.flush(master_id, slave_id)
+        return 0
+
+    def get_baud(self):
+        return 0
+
+    def set_baud(self, baud):
         return 0
 
     def write(self, data):
@@ -84,10 +93,12 @@ class SocketTcp(threading.Thread):
                 if len(rx_data) == 0:
                     self.is_err = 0
                     break
-                if self.rx_que.full():
-                    # print("[SockeTcp] Error! self.rx_que.full")
-                    self.rx_que.get()
-                self.rx_que.put(rx_data)
+                if self.rx_decoder == -1:
+                    if self.rx_que.full():
+                        self.rx_que.get()
+                    self.rx_que.put(rx_data)
+                else:
+                    self.rx_decoder.put(rx_data, len(rx_data), self.rx_que)
                 # print_msg.nhex("[SockeTcp] Rx: ", rx_data, len(rx_data))
         except Exception as err:
             self.close()

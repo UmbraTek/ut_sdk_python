@@ -9,7 +9,20 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from utapi.adra.adra_api_serial import AdraApiSerial
+from utapi.adra.adra_api_tcp import AdraApiTcp
+from utapi.adra.adra_api_udp import AdraApiUdp
 from utapi.common import print_msg
+
+
+def print_help():
+    print("Select the communication interface and protocol type")
+    print("./demo4_get_param arg1 arg2")
+    print("    [arg1] 1: Serial COM")
+    print("           2: Serial ACM")
+    print("           3: TCP")
+    print("           4: UDP")
+    print("    [arg2] 0: RS485")
+    print("           1: CAN")
 
 
 def main():
@@ -18,7 +31,58 @@ def main():
     The actuator ID is 1 and RS485 baud rate is 921600.
     Linux requires super user privileges to run code.
     """
-    adra = AdraApiSerial("/dev/ttyUSB0", 921600)
+
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
+        print_help()
+        return
+
+    bus_type = 0
+    if int(sys.argv[2]) == 0 or int(sys.argv[2]) == 1:
+        bus_type = int(sys.argv[2])
+    else:
+        print_help()
+        return
+
+    if int(sys.argv[1]) == 1:
+        if len(sys.argv) == 4:
+            com = "/dev/ttyUSB" + sys.argv[3]
+        else:
+            com = "/dev/ttyUSB0"
+        adra = AdraApiSerial(com, 921600, bus_type)
+        if adra.is_error():
+            return
+
+    elif int(sys.argv[1]) == 2:
+        if len(sys.argv) == 4:
+            com = "/dev/ttyACM" + sys.argv[3]
+        else:
+            com = "/dev/ttyACM0"
+
+        adra = AdraApiSerial(com, 921600, bus_type)
+        if adra.is_error():
+            return
+        adra.into_usb_pm()
+
+    elif int(sys.argv[1]) == 3:
+        if len(sys.argv) == 4:
+            ip = "192.168.1." + sys.argv[3]
+        else:
+            ip = "192.168.1.168"
+
+        adra = AdraApiTcp(ip, 6001, bus_type)
+        if adra.is_error():
+            return
+
+    elif int(sys.argv[1]) == 4:
+        if len(sys.argv) == 4:
+            ip = "192.168.1." + sys.argv[3]
+        else:
+            ip = "192.168.1.168"
+
+        adra = AdraApiUdp(ip, 5001, bus_type)
+        if adra.is_error():
+            return
+
     adra.connect_to_id(1)
 
     ret, uuid = adra.get_uuid()

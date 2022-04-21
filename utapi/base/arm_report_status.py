@@ -31,7 +31,7 @@ class ArmReportStatus(threading.Thread):
         self.pose = [0] * 6
         self.tau = [0] * 32
 
-        self.__socekt_fp = SocketTcp(ip, port, 32)
+        self.__socekt_fp = SocketTcp(ip, port, -1, 32)
         if self.__socekt_fp.is_error() != 0:
             logging.error("[UbotRStat] Error: SocketTcp failed, ip: %s, port: %d" % (ip, port))
             return -1
