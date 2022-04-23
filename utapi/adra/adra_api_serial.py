@@ -17,7 +17,7 @@ class AdraApiSerial(AdraApiBase):
         USB-to-RS485 or USB-to-CAN module hardware is required to connect the computer and the actuator.
 
         Args:
-            port (string): USB serial port, The default port on Linux is "/dev/ttyUSB0"
+            port (string): USB serial port, The default port on Linux is "/dev/ttyUSB0" or "/dev/ttyACM0"
             baud (int): Baud rate of serial communication
             bus_type (int, optional): 0 indicates the actuator that uses the RS485 port.
                                       1 indicates the actuator that uses the CAN port.
@@ -65,4 +65,9 @@ class AdraApiSerial(AdraApiBase):
         return self.__is_err
 
     def into_usb_pm(self):
+        u"""If use the USB of the EtherNet to RS485/CAN module to transmit RS485/CAN data, 
+        need to use this function to put the EtherNet to RS485/CAN module into USB transmission mode. 
+        After the EtherNet to RS485/CAN module is powered on, the transmission mode is TCP/UDP by default. 
+        Therefore, only need to set the transmission mode once you are powered on.
+        """
         self.socket_fp.write("# INTO-USB-PM\n".encode('utf-8'))
