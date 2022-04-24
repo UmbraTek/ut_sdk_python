@@ -13,7 +13,7 @@ import socket
 
 
 class AdraApiUdp(AdraApiBase):
-    def __init__(self, ip, port=5001, bus_type=0, is_reset=1, tcp_port=6001):
+    def __init__(self, ip, port=5001, bus_type=0, is_reset=1, tcp_port=6001, baud=0xFFFFFFFF):
         u"""AdraApiUdp is an interface class that controls the ADRA actuator through a EtherNet UDP.
         EtherNet-to-RS485 or EtherNet-to-CAN module hardware is required to connect the computer and the actuator.
 
@@ -31,11 +31,14 @@ class AdraApiUdp(AdraApiBase):
                     Note: In any case, it is good to use reset, but the initialization time is about 3 seconds longer than that without reset.
                     Note: After DataLink is powered on and connected to USB, it needs to be powered on again to connect to TCP or UDP.
             tcp_port (int, optional): TCP port of EtherNet module. The default value is 6001.
+            baud (int, optional): Set the baud rate of the EtherNet to RS485/CAN module to be the same as that of the actuator.
+                                  If the baud rate is set to 0xFFFFFFFF, the baud rate of the EtherNet to RS485/CAN module is not set.
+                                  The default value is 0xFFFFFFFF.
         """
         self.DB_FLG = "[Adra Udp] "
         self.__is_err = 0
         id = 1
-        print(self.DB_FLG + "SocketUDP, ip:%s, port:%d" % (ip, port))
+        print(self.DB_FLG + "SocketUDP, ip:%s, udp port:%d, tcp_port:%d, baud: %d" % (ip, port, tcp_port, baud))
         self.socket_fp = SocketUDP(ip, port)
         if self.socket_fp.is_error() != 0:
             print(self.DB_FLG + "Error: SocketUDP, ip:%s, port:%d" % (ip, port))
@@ -47,7 +50,7 @@ class AdraApiUdp(AdraApiBase):
                 self._reset_net_can(ip, tcp_port, port)
             self.socket_fp.flush()
             self.bus_client = UtccClient(self.socket_fp)
-            ret = self.bus_client.connect_device()
+            ret = self.bus_client.connect_device(baud)
             if ret != 0:
                 self.__is_err = 1
                 print(self.DB_FLG + "Error: connect_device: ret = ", ret)
@@ -61,7 +64,7 @@ class AdraApiUdp(AdraApiBase):
                 self._reset_net_rs485(ip, tcp_port, port)
             self.socket_fp.flush()
             self.bus_client = UtrcClient(self.socket_fp)
-            ret = self.bus_client.connect_device()
+            ret = self.bus_client.connect_device(baud)
             if ret != 0:
                 self.__is_err = 1
                 print(self.DB_FLG + "Error: connect_device: ret = ", ret)

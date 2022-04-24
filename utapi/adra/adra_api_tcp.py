@@ -13,7 +13,7 @@ import socket
 
 
 class AdraApiTcp(AdraApiBase):
-    def __init__(self, ip, port=6001, bus_type=0, is_reset=1, udp_port=5001):
+    def __init__(self, ip, port=6001, bus_type=0, is_reset=1, udp_port=5001, baud=0xFFFFFFFF):
         u"""AdraApiTcp is an interface class that controls the ADRA actuator through a EtherNet TCP.
         EtherNet-to-RS485 or EtherNet-to-CAN module hardware is required to connect the computer and the actuator.
 
@@ -31,11 +31,14 @@ class AdraApiTcp(AdraApiBase):
                     Note: In any case, it is good to use reset, but the initialization time is about 3 seconds longer than that without reset.
                     Note: After DataLink is powered on and connected to USB, it needs to be powered on again to connect to TCP or UDP.
             udp_port (int, optional): UDP port of EtherNet module. The default value is 5001.
+            baud (int, optional): Set the baud rate of the EtherNet to RS485/CAN module to be the same as that of the actuator.
+                                  If the baud rate is set to 0xFFFFFFFF, the baud rate of the EtherNet to RS485/CAN module is not set.
+                                  The default value is 0xFFFFFFFF.
         """
         self.DB_FLG = "[Adra Tcp] "
         self.__is_err = 0
         id = 1
-        print(self.DB_FLG + "SocketTcp, ip:%s, port:%d" % (ip, port))
+        print(self.DB_FLG + "SocketTcp, ip:%s, tcp_port:%d, udp_port:%d, baud: %d" % (ip, port, udp_port, baud))
 
         if bus_type == 0:
             if is_reset:
@@ -49,7 +52,7 @@ class AdraApiTcp(AdraApiBase):
 
             self.socket_fp.flush()
             self.bus_client = UtrcClient(self.socket_fp)
-            ret = self.bus_client.connect_device()
+            ret = self.bus_client.connect_device(baud)
             if ret != 0:
                 self.__is_err = 1
                 print(self.DB_FLG + "Error: connect_device: ret = ", ret)
@@ -69,7 +72,7 @@ class AdraApiTcp(AdraApiBase):
 
             self.socket_fp.flush()
             self.bus_client = UtccClient(self.socket_fp)
-            ret = self.bus_client.connect_device()
+            ret = self.bus_client.connect_device(baud)
             if ret != 0:
                 self.__is_err = 1
                 print(self.DB_FLG + "Error: connect_device: ret = ", ret)

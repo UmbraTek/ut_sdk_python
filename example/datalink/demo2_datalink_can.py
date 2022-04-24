@@ -30,12 +30,12 @@ def main():
     com = "/dev/ttyACM0"
 
     if int(sys.argv[1]) == 1:
-        datalink = DataLinkApiCan(1, [ip, 6001, 5001], 1)
+        datalink = DataLinkApiCan(1, [ip, 6001, 5001], 1, 1000000)
         if datalink.is_error():
             return
 
     elif int(sys.argv[1]) == 2:
-        datalink = DataLinkApiCan(2, [ip, 6001, 5001], 1)
+        datalink = DataLinkApiCan(2, [ip, 6001, 5001], 1, 1000000)
         if datalink.is_error():
             return
 

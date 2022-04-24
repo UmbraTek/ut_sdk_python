@@ -7,6 +7,7 @@
 from common import print_msg
 from common import hex_data
 from common import crc16
+from common import hex_data
 
 
 class UTCC_RX_ERROR():
@@ -112,7 +113,7 @@ class UtccClient():
         self.port_fp = port_fp
         self.port_fp.flush()
 
-    def connect_device(self):
+    def connect_device(self, argv1=0xFFFFFFFF):
         tx_utcc = UtccType()
         tx_utcc.head = 0xAA
         tx_utcc.id = 0x0055
@@ -121,6 +122,9 @@ class UtccClient():
         tx_utcc.rw = 0
         tx_utcc.cmd = 0x7F
         tx_utcc.data[0:8] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]
+        tx_utcc.data[0:4] = hex_data.uint32_to_bytes_big(argv1)
+        # print(argv1)
+        # print(tx_utcc.data[0:8])
 
         self.send(tx_utcc)
         ret, rx_utcc = self.pend(tx_utcc, 1, 2)

@@ -6,6 +6,7 @@
 # =============================================================================
 from common import print_msg
 from common import crc16
+from common import hex_data
 
 
 class UTRC_RX_ERROR:
@@ -102,7 +103,7 @@ class UtrcClient:
         self.port_fp = port_fp
         self.port_fp.flush()
 
-    def connect_device(self):
+    def connect_device(self, argv1=0xFFFFFFFF):
         tx_utrc = UtrcType()
         tx_utrc.master_id = 0xAA
         tx_utrc.slave_id = 0x55
@@ -111,6 +112,7 @@ class UtrcClient:
         tx_utrc.rw = 0
         tx_utrc.cmd = 0x7F
         tx_utrc.data[0:8] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]
+        tx_utrc.data[0:4] = hex_data.uint32_to_bytes_big(argv1)
 
         buf = tx_utrc.pack()
         self.port_fp.flush(tx_utrc.slave_id, tx_utrc.master_id)
