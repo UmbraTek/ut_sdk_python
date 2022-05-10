@@ -725,7 +725,8 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.LOAD_PARAM, txdata, 4)
 
     def get_gravity_dir(self):
-        """Get the direction of the acceleration experienced by the robot
+        """NOT public in current version
+		Get the direction of the acceleration experienced by the robot
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -734,10 +735,12 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.GRAVITY_DIR, 3)
 
     def set_gravity_dir(self, value):
-        """Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
-        this corresponds to an accleration of gaway from the earth’s centre
+        """NOT public in current version
+		Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
+        this corresponds to an accleration of gaway from the earth's centre
         $ set_gravity_dir([0, 9.82*sin(theta), 9.82*cos(theta)]) // will set the acceleration for a robot
         that is rotated ”theta” radians around the x-axis of the robot base coordinate system
+		It is recommended to use this feature with Studio, which provides graphical interface Settings
 
         Args:
             value (list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
@@ -748,7 +751,8 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.GRAVITY_DIR, value, 3)
 
     def get_collis_sens(self):
-        """Get the sensitivity of collision detection
+        """NOT public in current version
+        Get the sensitivity of collision detection
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -757,7 +761,8 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.COLLIS_SENS, 1)
 
     def set_collis_sens(self, num):
-        """Set the sensitivity of collision detection
+        """NOT public in current version
+        Set the sensitivity of collision detection
 
         Args:
             num (int): 0-5, 0 means close collision detection, sensitivity increases from 1 to 5,
@@ -769,56 +774,28 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.COLLIS_SENS, int(num), 1)
 
     def get_teach_sens(self):
-        """Get the sensitivity of freedrive
+        """NOT public in current version
+        Get the sensitivity of freedrive
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            num (int): 1-5
+            num (int): 90-110
         """
         return self.__get_reg_int8(self.reg.TEACH_SENS, 1)
 
     def set_teach_sens(self, num):
-        """Set the sensitivity of freedrive
+        """NOT public in current version
+        Set the sensitivity of freedrive
 
         Args:
-            num (int): 1-5, sensitivity increases from 1 to 5, and 5 is the highest sensitivity
+            num (int): 90-110, sensitivity increases from 90% to 110%, and 110 is the highest sensitivity
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_int8(self.reg.TEACH_SENS, int(num), 1)
 
-    def get_friction(self, axis):
-        """Get the friction of the joint
 
-        Args:
-            axis ([int]): Joint number one to N
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            fri ([list]): [Forward Coulomb, Forward viscous, reverse Coulomb, reverse viscous]
-        """
-        txdata = bytes([self.reg.FRICTION[0]])
-        txdata += bytes([int(axis)])
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.FRICTION, txdata)
-        fri = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
-        return ret, fri
-
-    def set_friction(self, axis, fri):
-        """Set the friction of the joint
-
-        Args:
-            axis ([int]): Joint number one to N
-            fri ([list]): [Forward Coulomb, Forward viscous, reverse Coulomb, reverse viscous]
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-        """
-        txdata = bytes([self.reg.FRICTION[0]])
-        txdata += bytes([int(axis)])
-        txdata += hex_data.fp32_to_bytes_big(fri, 4)
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.FRICTION, txdata)
-        return ret
 
     ############################################################
     #                       State Api
