@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -11,7 +13,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from utapi.adra.adra_api_serial import AdraApiSerial
 from utapi.adra.adra_api_tcp import AdraApiTcp
 from utapi.adra.adra_api_udp import AdraApiUdp
-from utapi.common import print_msg
 
 
 def print_help():

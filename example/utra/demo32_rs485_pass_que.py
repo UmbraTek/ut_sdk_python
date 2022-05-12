@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -10,7 +12,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.utra.utra_api_tcp import UtraApiTcp
-from base.arm_reg import RS485_LINE
+from utapi.base.arm_reg import RS485_LINE
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

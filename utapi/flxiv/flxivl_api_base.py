@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -137,8 +139,8 @@ class FlxiVlApiBase(_ServoApiBase):
         return self._get_temp_limit()
 
     def set_temp_limit(self, min, max):
-        """Set the temperature limit threshold, 
-        the minimum alarm threshold range [-20, 90], 
+        """Set the temperature limit threshold,
+        the minimum alarm threshold range [-20, 90],
         the maximum alarm threshold range [-20, 90], in degrees Celsius
 
         Args:
@@ -161,8 +163,8 @@ class FlxiVlApiBase(_ServoApiBase):
         return self._get_volt_limit()
 
     def set_volt_limit(self, min, max):
-        """Set the voltage limit threshold, 
-        the minimum alarm threshold range [18, 55], 
+        """Set the voltage limit threshold,
+        the minimum alarm threshold range [18, 55],
         the maximum alarm threshold range [18, 55], unit volt
 
         Args:
@@ -173,7 +175,6 @@ class FlxiVlApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._set_volt_limit(min, max)
-
 
 ############################################################
 #                       Control Api

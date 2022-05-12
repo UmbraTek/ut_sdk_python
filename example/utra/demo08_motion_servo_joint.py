@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -8,9 +10,10 @@ import sys
 import argparse
 import os
 
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.utra.utra_api_tcp import UtraApiTcp
-from common import print_msg
+
 
 if __name__ == '__main__':
     """This is a demo of servo motion in joint space
@@ -38,7 +41,7 @@ if __name__ == '__main__':
     joint1 = [20 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 40 / 57.296]
     joint2 = [20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
     joint3 = [-20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
-    time = [2, 2, 2]
+    time = [5, 5, 5]
     joint = [joint1, joint2, joint3]
 
     ret = ubot.moveto_servo_joint(3, joint, time)

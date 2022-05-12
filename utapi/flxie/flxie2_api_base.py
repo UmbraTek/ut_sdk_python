@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -138,8 +140,8 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._get_temp_limit()
 
     def set_temp_limit(self, min, max):
-        """Set the temperature limit threshold, 
-        the minimum alarm threshold range [-20, 90], 
+        """Set the temperature limit threshold,
+        the minimum alarm threshold range [-20, 90],
         the maximum alarm threshold range [-20, 90], in degrees Celsius
 
         Args:
@@ -162,8 +164,8 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._get_volt_limit()
 
     def set_volt_limit(self, min, max):
-        """Set the voltage limit threshold, 
-        the minimum alarm threshold range [18, 55], 
+        """Set the voltage limit threshold,
+        the minimum alarm threshold range [18, 55],
         the maximum alarm threshold range [18, 55], unit volt
 
         Args:
@@ -245,12 +247,12 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._set_motion_enable(enable)
 
     def set_unlock_function(self, fun):
-        """When the position of the manipulator grasping tensioning reaches the limit position, 
-        and then the mechanical card main cause the motor can not rotate normally, 
+        """When the position of the manipulator grasping tensioning reaches the limit position,
+        and then the mechanical card main cause the motor can not rotate normally,
         you can use this function to try to unlock, so that the hand movement to the normal position.
 
         Args:
-            fun (uint8_t): 
+            fun (uint8_t):
                 1 Unlock the manipulator stuck in the limit position
                 2 Unlock the manipulator clamp is too tight
 
@@ -393,7 +395,7 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._get_pos_smooth_cyc()
 
     def set_pos_smooth_cyc(self, cyc):
-        """Set smoothing filter period of the position loop. The larger the smoothing period, 
+        """Set smoothing filter period of the position loop. The larger the smoothing period,
         the smoother the movement and the slower the response. The range is 1 to 125
 
         Args:
@@ -450,7 +452,7 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._get_vel_limit_min()
 
     def set_vel_limit_min(self, vel):
-        """Set the minimum limit of the speed in speed mode and position mode, 
+        """Set the minimum limit of the speed in speed mode and position mode,
         other modes such as current mode do not work
 
         Args:
@@ -471,7 +473,7 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._get_vel_limit_max()
 
     def set_vel_limit_max(self, vel):
-        """Set maximum limit of the speed in speed mode and position mode, 
+        """Set maximum limit of the speed in speed mode and position mode,
         other modes such as current mode do not work
 
         Args:
@@ -481,7 +483,6 @@ class FlxiE2ApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._set_vel_limit_max(vel)
-
 
 ############################################################
 #                       Current Api
@@ -606,7 +607,7 @@ class FlxiE2ApiBase(_ServoApiBase):
         return self._get_tau_smooth_cyc()
 
     def set_tau_smooth_cyc(self, value):
-        """Set smoothing filter period of the current loop. The larger the smoothing period, 
+        """Set smoothing filter period of the current loop. The larger the smoothing period,
         the smoother the movement and the slower the response. The range is 1 to 125
 
         Args:

@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -7,7 +9,6 @@
 from common import print_msg
 from common import hex_data
 from common import crc16
-from common import hex_data
 
 
 class UTCC_RX_ERROR():

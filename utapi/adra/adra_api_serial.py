@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -65,9 +67,9 @@ class AdraApiSerial(AdraApiBase):
         return self.__is_err
 
     def into_usb_pm(self):
-        u"""If use the USB of the EtherNet to RS485/CAN module to transmit RS485/CAN data, 
-        need to use this function to put the EtherNet to RS485/CAN module into USB transmission mode. 
-        After the EtherNet to RS485/CAN module is powered on, the transmission mode is TCP/UDP by default. 
+        u"""If use the USB of the EtherNet to RS485/CAN module to transmit RS485/CAN data,
+        need to use this function to put the EtherNet to RS485/CAN module into USB transmission mode.
+        After the EtherNet to RS485/CAN module is powered on, the transmission mode is TCP/UDP by default.
         Therefore, only need to set the transmission mode once you are powered on.
         """
         self.socket_fp.write("# INTO-USB-PM\n".encode('utf-8'))

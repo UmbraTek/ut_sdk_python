@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -8,7 +10,6 @@
 import queue
 import socket
 import threading
-from common import print_msg
 
 
 class SocketTcp(threading.Thread):

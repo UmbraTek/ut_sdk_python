@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -10,10 +12,10 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.utra.utra_api_tcp import UtraApiTcp
-from common import print_msg
+
 
 if __name__ == '__main__':
-    """This is a demo of circular motion in tool space
+    """This is a demo of circular motion in tool space.
     """
     parser = argparse.ArgumentParser()
     parser.description = 'ubot demo'

@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -44,6 +46,7 @@ def bytes_to_uint24_big(data):
     return str1[0]
 
 
+"""
 def bytes_to_int32_big(data):
     byte = bytes([data[0]])
     byte += bytes([data[1]])
@@ -51,6 +54,7 @@ def bytes_to_int32_big(data):
     byte += bytes([data[3]])
     str1 = struct.unpack(">i", byte)
     return str1[0]
+"""
 
 
 def bytes_to_int32_big(data, num=1):
@@ -78,9 +82,11 @@ def bytes_to_uint32_big(data):
     return str1[0]
 
 
+"""
 def int8_to_bytes_big(data):
     str1 = bytes(struct.pack(">b", data))
     return str1
+"""
 
 
 def int8_to_bytes_big(data, num=1):

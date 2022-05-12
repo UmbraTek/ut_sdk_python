@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -12,7 +14,7 @@ from flxie.flxie2_api_base import FlxiE2ApiBase
 
 class FlxiE2ApiSerial(FlxiE2ApiBase):
     def __init__(self, port, baud, is_can=0):
-        """The FlxiE2ApiSerial class is an interface class for controlling FLXIE2 connectors through the serial port. 
+        """The FlxiE2ApiSerial class is an interface class for controlling FLXIE2 connectors through the serial port.
         It needs to connect the serial port to RS485 module or TCP/IP to CAN module
 
         Args:

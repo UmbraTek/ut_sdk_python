@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -25,6 +27,7 @@ class ARM_REG:
         self.SW_VERSION = [0x02, 0, 20, null, null]
         self.HW_VERSION = [0x03, 0, 20, null, null]
         self.UBOT_AXIS = [0x04, 0, 1, null, null]
+        self.SYS_AUTORUN = [0x0A, 0, 1, 1, 0]
         self.SYS_SHUTDOWN = [0x0B, null, null, 1, 0]
         self.RESET_ERR = [0x0C, null, null, 1, 0]
         self.SYS_REBOOT = [0x0D, null, null, 1, 0]

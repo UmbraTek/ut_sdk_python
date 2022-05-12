@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -9,7 +11,6 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.flxiv.flxivl_api_serial import FlxiVlApiSerial
-from utapi.common import print_msg
 
 
 def main():

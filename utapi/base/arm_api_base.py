@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -171,6 +173,29 @@ class _ArmApiBase:
         self.__AXIS = axis
         return ret, axis
 
+    def get_sys_autorun(self):
+        """Get the arm automatically starts symbol when it is powered on.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+            autorun (int): 0: The arm does not start automatically when it is powered on.
+                           1: The arm automatically starts when it is powered on.
+
+        """
+        return self.__get_reg_int8(self.reg.SYS_AUTORUN, 1)
+
+    def set_sys_autorun(self, autorun):
+        """Set the arm to start automatically when it is powered on.
+
+        Args:
+            autorun (int): 0: The arm does not start automatically when it is powered on.
+                           1: The arm automatically starts when it is powered on.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        return self.__set_reg_int8(self.reg.SYS_AUTORUN, int(autorun), 1)
+
     def shutdown_system(self):
         """Power off the controller
 
@@ -246,7 +271,8 @@ class _ArmApiBase:
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            value (int): There are a total of 32 bits, the 0th bit represents the enable state of the first joint brake, and so on.
+            value (int): There are a total of 32 bits, the 1th bit represents the enable state of the first joint brake,
+                the 1th bit represents the enable state of the second joint brake, and so on.
                 0xFFFF means all enable
                 0x0000 means all disable
                 0x0001 means only the first joint is enabled
@@ -271,7 +297,8 @@ class _ArmApiBase:
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            value (int): There are a total of 32 bits, the 0th bit represents the enable state of the first joint brake, and so on.
+            value (int): There are a total of 32 bits, the 1th bit represents the enable state of the first joint brake,
+                the 2th bit represents the enable state of the second joint brake, and so on.
                 0xFFFF means all enable
                 0x0000 means all disable
                 0x0001 means only the first joint is enabled
@@ -546,7 +573,8 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVE_SERVOJ, txdata, self.__AXIS + 3)
 
     def moveto_servo_joint(self, frames_num, mvjoint, mvtime):
-        """Move to position (linear in joint-space) When using this command,And specify the time to execute to the target location
+        """Move to position (linear in joint-space) When using this command,
+            And specify the time to execute to the target position
             Take a look at application example Demo08
 
         Args:
@@ -726,7 +754,7 @@ class _ArmApiBase:
 
     def get_gravity_dir(self):
         """NOT public in current version
-		Get the direction of the acceleration experienced by the robot
+                Get the direction of the acceleration experienced by the robot
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -736,11 +764,11 @@ class _ArmApiBase:
 
     def set_gravity_dir(self, value):
         """NOT public in current version
-		Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
+                Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
         this corresponds to an accleration of gaway from the earth's centre
         $ set_gravity_dir([0, 9.82*sin(theta), 9.82*cos(theta)]) // will set the acceleration for a robot
         that is rotated ”theta” radians around the x-axis of the robot base coordinate system
-		It is recommended to use this feature with Studio, which provides graphical interface Settings
+                It is recommended to use this feature with Studio, which provides graphical interface Settings
 
         Args:
             value (list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
@@ -794,8 +822,6 @@ class _ArmApiBase:
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_int8(self.reg.TEACH_SENS, int(num), 1)
-
-
 
     ############################################################
     #                       State Api
@@ -897,7 +923,8 @@ class _ArmApiBase:
         """NOT public in current version
         Checks if the given pose is reachable and within the current safety limits of the robot.
         This check considers joint limits (if the target pose is specified as joint positions), safety planes limits,
-        If a solution is found when applying the inverse kinematics to the given target TCP pose, this pose is considered reachable.
+        If a solution is found when applying the inverse kinematics to the given target TCP pose,
+        this pose is considered reachable.
 
         Args:
             pose (list): Target pose: ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]

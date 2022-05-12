@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -105,7 +107,7 @@ class AdraApiTcp(AdraApiBase):
             fp.connect((ip, tcp_port))
             fp.send(buf)
         except Exception as err:
-            pass
+            print(err)
         time.sleep(0.1)
 
         try:
@@ -114,7 +116,7 @@ class AdraApiTcp(AdraApiBase):
             fp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             fp.sendto(buf, addr)
         except Exception as err:
-            pass
+            print(err)
         self.__is_err = 0
         time.sleep(3)
 
@@ -135,7 +137,7 @@ class AdraApiTcp(AdraApiBase):
             fp.connect((ip, tcp_port))
             fp.send(buf)
         except Exception as err:
-            pass
+            print(err)
         time.sleep(0.1)
 
         try:
@@ -144,6 +146,6 @@ class AdraApiTcp(AdraApiBase):
             fp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             fp.sendto(buf, addr)
         except Exception as err:
-            pass
+            print(err)
         self.__is_err = 0
         time.sleep(3)

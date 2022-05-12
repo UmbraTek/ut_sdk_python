@@ -1,4 +1,6 @@
-# Copyright 2020 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2020 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -75,3 +77,5 @@ class SERVO_REG:
     CPOSTAU_TARGET = [0x62, null, null, 0, null]  # startId endId (pos+tau)*Axis
     SPOSTAU_CURRENT = [0x68, 0, 8 + 1, null, null]  # Gets the current position and torque of an actuator
     CPOSTAU_CURRENT = [0x69, 2, 8 + 1, null, null]  # startId endId
+
+

@@ -1,4 +1,6 @@
-# Copyright 2021 The UmbraTek Inc. All Rights Reserved.
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 UmbraTek Inc. All Rights Reserved.
 #
 # Software License Agreement (BSD License)
 #
@@ -10,10 +12,10 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.utra.utra_api_tcp import UtraApiTcp
-from common import print_msg
+
 
 if __name__ == '__main__':
-    """This is a demo of movement in Tool space 
+    """This is a demo of movement in Tool space.
     """
     parser = argparse.ArgumentParser()
     parser.description = 'ubot demo'
@@ -44,7 +46,7 @@ if __name__ == '__main__':
 
     ret = ubot.moveto_cartesian_line(pos1, speed, acc, 5.0)
     print("moveto_cartesian_line   :%d" % (ret))
-    #ret = ubot.moveto_cartesian_line(pos2, speed, acc, 5.0)
+    # ret = ubot.moveto_cartesian_line(pos2, speed, acc, 5.0)
     print("moveto_cartesian_line   :%d" % (ret))
-    #ret = ubot.moveto_cartesian_line(pos3, speed, acc, 5.0)
+    # ret = ubot.moveto_cartesian_line(pos3, speed, acc, 5.0)
     print("moveto_cartesian_line   :%d" % (ret))
