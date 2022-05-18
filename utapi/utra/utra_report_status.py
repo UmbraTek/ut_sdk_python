@@ -6,7 +6,7 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from base.arm_report_status import ArmReportStatus
+from utapi.base.arm_report_status import ArmReportStatus
 
 
 class UtraReportStatus10Hz(ArmReportStatus):

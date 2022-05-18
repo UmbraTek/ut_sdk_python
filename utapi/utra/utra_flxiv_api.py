@@ -6,9 +6,9 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from base.arm_reg import RS485_LINE
-from base.servo_reg import SERVO_REG as REG
-from common import hex_data
+from utapi.base.arm_reg import RS485_LINE
+from utapi.base.servo_reg import SERVO_REG as REG
+from utapi.common import hex_data
 
 
 class FLXIV_REG:

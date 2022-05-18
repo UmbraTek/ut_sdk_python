@@ -6,7 +6,7 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from base.servo_api_base import _ServoApiBase
+from utapi.base.servo_api_base import _ServoApiBase
 
 
 class AdraApiBase(_ServoApiBase):

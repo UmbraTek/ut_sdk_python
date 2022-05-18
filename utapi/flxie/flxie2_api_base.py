@@ -6,9 +6,9 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from base.servo_api_base import _ServoApiBase
-from common.utrc import UTRC_RW
-from common import hex_data
+from utapi.base.servo_api_base import _ServoApiBase
+from utapi.common.utrc import UTRC_RW
+from utapi.common import hex_data
 
 
 class FLXIE_REG:

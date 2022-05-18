@@ -6,9 +6,9 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common import print_msg
-from common import hex_data
-from common import crc16
+from utapi.common import print_msg
+from utapi.common import hex_data
+from utapi.common import crc16
 
 
 class UTCC_RX_ERROR():

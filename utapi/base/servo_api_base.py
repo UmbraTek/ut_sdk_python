@@ -6,9 +6,9 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common.utrc import UTRC_RW, UTRC_RX_ERROR
-from common import hex_data
-from base.servo_reg import SERVO_REG
+from utapi.common.utrc import UTRC_RW, UTRC_RX_ERROR
+from utapi.common import hex_data
+from utapi.base.servo_reg import SERVO_REG
 import threading
 
 
@@ -545,4 +545,3 @@ class _ServoApiBase:
         self.mutex.release()
 
         return ret, broadcast_num, pos, tau
-

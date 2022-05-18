@@ -6,10 +6,10 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common import hex_data
-from base.arm_reg import ARM_REG, RS485_LINE
-from base.gpio_reg import GPIO_REG
-from common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
+from utapi.common import hex_data
+from utapi.base.arm_reg import ARM_REG, RS485_LINE
+from utapi.base.gpio_reg import GPIO_REG
+from utapi.common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
 import logging
 import threading
 

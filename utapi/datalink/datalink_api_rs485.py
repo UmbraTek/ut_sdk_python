@@ -8,10 +8,10 @@
 # =============================================================================
 import time
 import socket
-from common.utrc import UtrcClient, UtrcType
-from common.socket_udp import SocketUDP
-from common.socket_tcp import SocketTcp
-from common.socket_serial import SocketSerial
+from utapi.common.utrc import UtrcClient, UtrcType
+from utapi.common.socket_udp import SocketUDP
+from utapi.common.socket_tcp import SocketTcp
+from utapi.common.socket_serial import SocketSerial
 
 
 class DataLinkApiRs485():
