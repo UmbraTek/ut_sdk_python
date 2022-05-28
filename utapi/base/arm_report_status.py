@@ -8,8 +8,8 @@
 # =============================================================================
 import struct
 import threading
-from common import print_msg
-from common.socket_tcp import SocketTcp
+from utapi.common import print_msg
+from utapi.common.socket_tcp import SocketTcp
 import logging
 
 

@@ -29,9 +29,9 @@ class GPIO_REG:
     SAVED_PARM = [0x0F, null, null, 1, 0]
 
     FUNCTRL = [0x10, 0, 4, 4, 0]
-    FUNGPIO = [0x11, 0, 1, 1, 0]
+    FUNGPIO = [0x11, 0, 4, 4, 0]
     DIGITIN = [0x12, 0, 4, 4, 0]
-    DIGITOU = [0x13, 0, 1, 1, 0]
+    DIGITOU = [0x13, 0, 4, 4, 0]
     TEMP_LIMIT = [0x18, 0, 2, 2, 0]
     VOLT_LIMIT = [0x19, 0, 2, 2, 0]
     CURR_LIMIT = [0x1A, 0, 4, 4, 0]
@@ -41,8 +41,11 @@ class GPIO_REG:
     BUS_CURR = [0x2B, 0, 4, null, null]
     ERROR_CODE = [0x2F, 0, 1, null, null]
 
-    GETFRAME1 = [0x40, 0, (1 + 2 + analogin_num) * 4, null, null]
-    SETFRAME2 = [0x41, null, null, (1 + 2 + analogou_num) * 4, 0]
+    # GETFRAME1 = [0x40, 0, (1 + 2 + analogin_num) * 4, null, null]
+    # SETFRAME2 = [0x41, null, null, (1 + 2 + analogou_num) * 4, 0]
+
+    FRAME_IN = [0x60, 0, 0x55, null, null]
+    FRAME_OU = [0x61, 0, 0x55, 0x55, 0]
 
     SAVED_PROD = [0x78, null, null, 1, 0]
     INTO_BOOT = [0x7A, null, null, 1, 0]

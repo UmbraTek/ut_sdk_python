@@ -8,12 +8,12 @@
 # =============================================================================
 import time
 import socket
-from common import hex_data
-from common.utcc import UtccClient, UtccType, UtccDecode
-from common.socket_udp import SocketUDP
-from common.socket_tcp import SocketTcp
-from common.socket_serial import SocketSerial
-from common import crc16
+from utapi.common import hex_data
+from utapi.common.utcc import UtccClient, UtccType, UtccDecode
+from utapi.common.socket_udp import SocketUDP
+from utapi.common.socket_tcp import SocketTcp
+from utapi.common.socket_serial import SocketSerial
+from utapi.common import crc16
 
 
 class DataLinkApiCan():

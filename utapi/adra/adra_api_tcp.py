@@ -6,10 +6,10 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common.utrc import UtrcType, UtrcClient, UtrcDecode
-from common.utcc import UtccType, UtccClient, UtccDecode
-from common.socket_tcp import SocketTcp
-from adra.adra_api_base import AdraApiBase
+from utapi.common.utrc import UtrcType, UtrcClient, UtrcDecode
+from utapi.common.utcc import UtccType, UtccClient, UtccDecode
+from utapi.common.socket_tcp import SocketTcp
+from utapi.adra.adra_api_base import AdraApiBase
 import time
 import socket
 

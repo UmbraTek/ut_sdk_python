@@ -18,7 +18,7 @@ if __name__ == '__main__':
     """This is a demo of circular motion in tool space.
     """
     parser = argparse.ArgumentParser()
-    parser.description = 'ubot demo'
+    parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)
     args = parser.parse_args()
 
@@ -41,9 +41,6 @@ if __name__ == '__main__':
     ret = ubot.moveto_joint_p2p(joint1, speed, acc, 60)
     print("moveto_joint_p2p   :%d" % (ret))
 
-    pos1 = [-0.0, -360.0, 800.0, 1.58, 0.0, 0.0]
-    pos2 = [-8.0, -560.0, 600.0, 1.58, 0.0, 0.0]
-    pos3 = [-180.0, -560.0, 600.0, 1.58, 0.0, 0.0]
     pos1 = [418, 56, 186, 3.14, 0.0, 1.5]
     pos2 = [418, -256, 186, 3.14, 0.0, 1.5]
     pos3 = [418, -256, 486, 3.14, 0.0, 1.5]
@@ -55,7 +52,20 @@ if __name__ == '__main__':
 
     ret = ubot.moveto_cartesian_circle(pos1, pos2, speed, acc, 5, 50)
     print("moveto_cartesian_circle   :%d" % (ret))
-    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 5, 100)
+    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 5, 90)
     print("moveto_cartesian_circle   :%d" % (ret))
-    ret = ubot.moveto_cartesian_circle(pos2, pos1, speed, acc, 5, 125)
+    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 5, 130)
     print("moveto_cartesian_circle   :%d" % (ret))
+
+    joint1 = [170.5 / 57.296, 3.5 / 57.296, -125.6 / 57.296, -39.1 / 57.296, -90 / 57.296, -9.5 / 57.296]
+    joint2 = [133.8 / 57.296, 13.1 / 57.296, -114.3 / 57.296, -37.3 / 57.296, -90 / 57.296, -46.2 / 57.296]
+    joint3 = [133.8 / 57.296, 3 / 57.296, -75.9 / 57.296, 11.1 / 57.296, -90 / 57.296, -46.2 / 57.296]
+    # ret = ubot.plan_sleep(5)
+    ret = ubot.moveto_joint_line(joint3, speed, acc, 5.0)
+    print("moveto_joint_line   :%d" % (ret))
+    ret = ubot.moveto_joint_circle(joint1, joint2, speed, acc, 5, 50)
+    print("moveto_joint_circle   :%d" % (ret))
+    ret = ubot.moveto_joint_circle(joint2, joint3, speed, acc, 5, 100)
+    print("moveto_joint_circle   :%d" % (ret))
+    ret = ubot.moveto_joint_circle(joint2, joint3, speed, acc, 5, 130)
+    print("moveto_joint_circle   :%d" % (ret))

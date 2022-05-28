@@ -18,20 +18,22 @@ if __name__ == '__main__':
     """This is a demo to get ubot parameters, status and other information
     """
     parser = argparse.ArgumentParser()
-    parser.description = 'ubot demo'
+    parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)
     args = parser.parse_args()
 
     ubot = UtraApiTcp(args.ip)
 
     ret, uuid = ubot.get_uuid()
-    print("get_uuid      : %d, uuid = %s" % (ret, uuid))
+    print("get_uuid       : %d, uuid    = %s" % (ret, uuid))
     ret, version = ubot.get_sw_version()
-    print("get_sw_version: %d, version = %10s %10s" % (ret, version[0:10], version[10:20]))
+    print("get_sw_version : %d, version = %10s %10s" % (ret, version[0:10], version[10:20]))
     ret, version = ubot.get_hw_version()
-    print("get_hw_version: %d, version = %10s %10s" % (ret, version[0:10], version[10:20]))
+    print("get_hw_version : %d, version = %10s %10s" % (ret, version[0:10], version[10:20]))
     ret, axis = ubot.get_axis()
-    print("get_axis      : %d, axis = %d" % (ret, axis))
+    print("get_axis       : %d, axis    = %d" % (ret, axis))
+    ret, autorun = ubot.get_sys_autorun()
+    print("get_sys_autorun: %d, autorun = %d" % (ret, autorun))
     print("")
 
     ret, mode = ubot.get_motion_mode()
@@ -72,3 +74,18 @@ if __name__ == '__main__':
     print_msg.nvect_03f("get_tcp_target_pos    : ", value, 6)
     ret, value = ubot.get_joint_target_pos()
     print_msg.nvect_03f("get_joint_target_pos   : ", value, axis)
+
+    pos = [300, -300, 400, 3.14 * 0.5, 0, 3.14 * 0.5]
+    joint = [1.8988, 0.1065, -1.9738, -2.0803, -0.3281, 0]
+
+    ret, joints = ubot.get_ik(pos, joint)
+    print("get_ik: %d" % (ret))
+    print_msg.nvect_03f("get_ik: ", joints, axis)
+    ret, poss = ubot.get_fk(joint)
+    print("get_fk: %d" % (ret))
+    print_msg.nvect_03f("get_fk: ", poss, 6)
+
+    ret, limit = ubot.is_joint_limit(joint)
+    print("is_joint_limit : %d, limit = %d " % (ret, limit))
+    ret, limit = ubot.is_tcp_limit(pos)
+    print("is_tcp_limit   : %d, limit = %d " % (ret, limit))

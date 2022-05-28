@@ -6,10 +6,10 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common import hex_data
-from base.arm_reg import ARM_REG, RS485_LINE
-from base.gpio_reg import GPIO_REG
-from common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
+from utapi.common import hex_data
+from utapi.base.arm_reg import ARM_REG, RS485_LINE
+from utapi.base.gpio_reg import GPIO_REG
+from utapi.common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
 import logging
 import threading
 
@@ -123,6 +123,21 @@ class _ArmApiBase:
         datas = hex_data.fp32_to_bytes_big(value, n)
         ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, reg, datas)
         return ret
+
+    def __get_reg_fp32_fp32(self, reg, rx_n, txdata, tx_n):
+        datas = hex_data.fp32_to_bytes_big(txdata, tx_n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, datas)
+        value = hex_data.bytes_to_fp32_big(utrc_rmsg.data, rx_n)
+        return ret, value
+
+    def __get_reg_int8_fp32(self, reg, rx_n, txdata, tx_n):
+        datas = hex_data.fp32_to_bytes_big(txdata, tx_n)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, reg, datas)
+        if rx_n == 1:
+            value = hex_data.bytes_to_int8(utrc_rmsg.data[0], rx_n)
+        else:
+            value = hex_data.bytes_to_int8(utrc_rmsg.data[0:rx_n], rx_n)
+        return ret, value
 
     ############################################################
     #                       Basic Api
@@ -393,13 +408,13 @@ class _ArmApiBase:
     ############################################################
 
     def moveto_cartesian_line(self, mvpose, mvvelo, mvacc, mvtime):
-        """Move to position (linear in tool-space)
+        """Move to position (linear in tool-space) When using this command, the robot must be at a standstill
         Take a look at application example Demo04
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
             mvvelo (float): tool speed [mm/s]
-            mvacc (float): tool acceleration [mm/sˆ2]
+            mvacc (float): tool acceleration [mm/s^2]
             mvtime (float): NOT used in current version
 
         Returns:
@@ -416,12 +431,13 @@ class _ArmApiBase:
     def moveto_cartesian_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
         """Blend circular (in tool-space) and move linear (in tool-space) to position.
         Accelerates to and moves with constant tool speed v.
+        The velocity is continuous between multiple position points.
         Take a look at application example Demo05
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
             mvvelo (float): tool speed [mm/s]
-            mvacc (float): tool acceleration [mm/sˆ2]
+            mvacc (float): tool acceleration [mm/s^2]
             mvtime (float): NOT used in current version
             mvradii (float): blend radius [mm]
 
@@ -436,22 +452,6 @@ class _ArmApiBase:
         txdata[8] = mvtime
         txdata[9] = mvradii
         return self.__set_reg_fp32(self.reg.MOVET_LINEB, txdata, 10)
-
-    def moveto_cartesian_p2p(self):
-        """NOT public in current version
-
-        Returns:
-            [type]: [description]
-        """
-        return 0
-
-    def moveto_cartesian_p2pb(self):
-        """NOT public in current version
-
-        Returns:
-            [type]: [description]
-        """
-        return 0
 
     def moveto_cartesian_circle(self, pose1, pose2, mvvelo, mvacc, mvtime, percent):
         """Move to position (circular in tool-space).
@@ -482,7 +482,28 @@ class _ArmApiBase:
         txdata[15] = percent
         return self.__set_reg_fp32(self.reg.MOVET_CIRCLE, txdata, 16)
 
-    def moveto_joint_line(self):
+    def moveto_cartesian_p2p(self, mvpose, mvvelo, mvacc, mvtime):
+        """"Move to position (linear in joint-space), When using this command, the robot must be at a standstill
+        Take a look at application example
+
+        Args:
+            mvpose (list): cartesian position [mm mm mm rad rad rad]
+            mvvelo (float): joint speed [rad/s]
+            mvacc (float): joint acceleration [rad/s^2]
+            mvtime (float): NOT used in current version
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = [0] * 9
+        for i in range(6):
+            txdata[i] = mvpose[i]
+        txdata[6] = mvvelo
+        txdata[7] = mvacc
+        txdata[8] = mvtime
+        return self.__set_reg_fp32(self.reg.MOVET_P2P, txdata, 9)
+
+    def moveto_cartesian_p2pb(self):
         """NOT public in current version
 
         Returns:
@@ -490,22 +511,14 @@ class _ArmApiBase:
         """
         return 0
 
-    def moveto_joint_lineb(self):
-        """NOT public in current version
-
-        Returns:
-            [type]: [description]
-        """
-        return 0
-
-    def moveto_joint_p2p(self, mvjoint, mvvelo, mvacc, mvtime):
-        """Move to position (linear in joint-space) When using this command, the robot must be at a standstill
-            Take a look at application example Demo03
+    def moveto_joint_line(self, mvjoint, mvvelo, mvacc, mvtime):
+        """Move to position (linear in tool-space) When using this command, the robot must be at a standstill
+            Take a look at application example
 
         Args:
             mvjoint (list): target joint positions [rad]
-            mvvelo (float): joint speed of leading axis [rad/s]
-            mvacc (float): joint acceleration of leading axis [rad/sˆ2]
+            mvvelo (float): tool speed of leading axis [mm/s]
+            mvacc (float): tool acceleration of leading axis [mm/s^2]
             mvtime (float): NOT used in current version
 
         Returns:
@@ -517,18 +530,85 @@ class _ArmApiBase:
         txdata[self.__AXIS] = mvvelo
         txdata[self.__AXIS + 1] = mvacc
         txdata[self.__AXIS + 2] = mvtime
-        return self.__set_reg_fp32(self.reg.MOVEJ_P2P, txdata, self.__AXIS + 3)
+        return self.__set_reg_fp32(self.reg.MOVEJ_LINE, txdata, self.__AXIS + 3)
 
-    def moveto_joint_circle(self, pose1, pose2, mvvelo, mvacc, mvtime, percent):
-        """NOT public in current version
+    def moveto_joint_lineb(self, mvjoint, mvvelo, mvacc, mvtime, mvradii):
+        """Blend circular (in tool-space) and move linear (in tool-space) to position.
+        Accelerates to and moves with constant tool speed v.
+        The velocity is continuous between multiple position points.
+        Take a look at application example
 
         Args:
-            pose1 ([type]): [description]
-            pose2 ([type]): [description]
-            mvvelo ([type]): [description]
-            mvacc ([type]): [description]
-            mvtime ([type]): [description]
-            percent ([type]): [description]
+            mvjoint(list): joint position[rad]
+            mvvelo(float): tool speed[mm/s]
+            mvacc(float): tool acceleration[mm/s^2]
+            mvtime(float): NOT used in current version
+            mvradii(float): blend radius[mm]
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = [0] * (self.__AXIS + 4)
+        for i in range(self.__AXIS):
+            txdata[i] = mvjoint[i]
+        txdata[self.__AXIS] = mvvelo
+        txdata[self.__AXIS + 1] = mvacc
+        txdata[self.__AXIS + 2] = mvtime
+        txdata[self.__AXIS + 3] = mvradii
+        return self.__set_reg_fp32(self.reg.MOVEJ_LINEB, txdata, self.__AXIS + 4)
+
+    def moveto_joint_circle(self, mvjoint1, mvjoint2, mvvelo, mvacc, mvtime, percent):
+        """"Move to position (circular in tool-space).
+        TCP moves on the circular arc segment from current pose, through mvjoint1 to mvjoint2.
+        Accelerates to and moves with constant tool speed mvvelo.
+        Take a look at application example
+
+        Args:
+            mvjoint1 (list): path cartesian position 1 [rad]
+            mvjoint2 (list): path cartesian position 2 [rad]
+            mvvelo (float): tool speed [m/s]
+            mvacc (float): tool acceleration [mm/s^2]
+            mvtime (float): NOT used in current version
+            percent (float): The length of the trajectory, the unit is a percentage of the circumference,
+                              which can be tens of percent or hundreds of percent...
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = [0] * (self.__AXIS * 2 + 4)
+        for i in range(self.__AXIS):
+            txdata[i] = mvjoint1[i]
+        for i in range(self.__AXIS):
+            txdata[self.__AXIS + i] = mvjoint2[i]
+        txdata[self.__AXIS * 2] = mvvelo
+        txdata[self.__AXIS * 2 + 1] = mvacc
+        txdata[self.__AXIS * 2 + 2] = mvtime
+        txdata[self.__AXIS * 2 + 3] = percent
+        return self.__set_reg_fp32(self.reg.MOVEJ_CIRCLE, txdata, self.__AXIS * 2 + 4)
+
+    def moveto_joint_p2p(self, mvjoint, mvvelo, mvacc, mvtime):
+        """Move to position(linear in joint - space) When using this command, the robot must be at a standstill
+            Take a look at application example Demo03
+
+        Args:
+            mvjoint(list): target joint positions[rad]
+            mvvelo(float): joint speed of leading axis[rad / s]
+            mvacc(float): joint acceleration of leading axis[rad / sˆ2]
+            mvtime(float): NOT used in current version
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = [0] * (self.__AXIS + 3)
+        for i in range(self.__AXIS):
+            txdata[i] = mvjoint[i]
+        txdata[self.__AXIS] = mvvelo
+        txdata[self.__AXIS + 1] = mvacc
+        txdata[self.__AXIS + 2] = mvtime
+        return self.__set_reg_fp32(self.reg.MOVEJ_P2P, txdata, self.__AXIS + 3)
+
+    def moveto_joint_p2pb(self):
+        """NOT public in current version
 
         Returns:
             [type]: [description]
@@ -536,15 +616,15 @@ class _ArmApiBase:
         return 0
 
     def moveto_home_p2p(self, mvvelo, mvacc, mvtime):
-        """Move to position of home (linear in joint-space) When using this command, the robot must be at a standstill
+        """Move to position of home(linear in joint - space) When using this command, the robot must be at a standstill
 
         Args:
-            mvvelo (float): joint speed of leading axis [rad/s]
-            mvacc (float): joint acceleration of leading axis [rad/sˆ2]
-            mvtime (float): NOT used in current version
+            mvvelo(float): joint speed of leading axis[rad / s]
+            mvacc(float): joint acceleration of leading axis[rad / sˆ2]
+            mvtime(float): NOT used in current version
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = [0] * 3
         txdata[0] = mvvelo
@@ -556,13 +636,13 @@ class _ArmApiBase:
         """NOT public in current version
 
         Args:
-            mvjoint (list): joint positions [rad]
-            mvvelo (float): NOT used in current version
-            mvacc (float): NOT used in current version
-            mvtime (float): NOT used in current version
+            mvjoint(list): joint positions[rad]
+            mvvelo(float): NOT used in current version
+            mvacc(float): NOT used in current version
+            mvtime(float): NOT used in current version
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = [0] * (self.__AXIS + 3)
         for i in range(self.__AXIS):
@@ -573,17 +653,17 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVE_SERVOJ, txdata, self.__AXIS + 3)
 
     def moveto_servo_joint(self, frames_num, mvjoint, mvtime):
-        """Move to position (linear in joint-space) When using this command,
+        """Move to position(linear in joint - space) When using this command,
             And specify the time to execute to the target position
             Take a look at application example Demo08
 
         Args:
-            frames_num (int32_t): Number of locations, up to three
-            mvjoint (list): joint positions [rad],That's equal to the number of joints times the number of frames
-            mvtime (list): The time to move to the target is specified in as many frames as possible [seconds]
+            frames_num(int32_t): Number of locations, up to three
+            mvjoint(list): joint positions[rad], That's equal to the number of joints times the number of frames
+            mvtime(list): The time to move to the target is specified in as many frames as possible[seconds]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         data_len = frames_num * (self.__AXIS + 1)
         txdata = [0] * data_len
@@ -604,10 +684,10 @@ class _ArmApiBase:
         """Sleep for an amount of motion time
 
         Args:
-            time (float): sleep time [s]
+            time(float): sleep time[s]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.MOVE_SLEEP, time, 1)
 
@@ -615,10 +695,10 @@ class _ArmApiBase:
         """Sleep for an amount of plan time
 
         Args:
-            time (float): sleep time [s]
+            time(float): sleep time[s]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.PLAN_SLEEP, time, 1)
 
@@ -627,83 +707,83 @@ class _ArmApiBase:
     ############################################################
 
     def get_tcp_jerk(self):
-        """Get the jerk of the tool-space
+        """Get the jerk of the tool - space
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            jerk (float): jerk [mm/s^3]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            jerk(float): jerk[mm / s ^ 3]
 
         """
         return self.__get_reg_fp32(self.reg.TCP_JERK, 1)
 
     def set_tcp_jerk(self, jerk):
-        """Set the jerk of the tool-space
+        """Set the jerk of the tool - space
 
         Args:
-            jerk (float): jerk [mm/s^3]
+            jerk(float): jerk[mm / s ^ 3]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.TCP_JERK, jerk, 1)
 
     def get_tcp_maxacc(self):
-        """Set the maximum acceleration of the tool-space
+        """Set the maximum acceleration of the tool - space
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            maxacc (float): maximum acceleration [mm/s^2]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            maxacc(float): maximum acceleration[mm / s ^ 2]
         """
         return self.__get_reg_fp32(self.reg.TCP_MAXACC, 1)
 
     def set_tcp_maxacc(self, maxacc):
-        """Set the maximum acceleration of the tool-space
+        """Set the maximum acceleration of the tool - space
 
         Args:
-            maxacc (float): maximum acceleration [mm/s^2]
+            maxacc(float): maximum acceleration[mm / s ^ 2]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.TCP_MAXACC, maxacc, 1)
 
     def get_joint_jerk(self):
-        """Get the jerk of the joint-space
+        """Get the jerk of the joint - space
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            jerk (float): jerk [rad/s^3]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            jerk(float): jerk[rad / s ^ 3]
         """
         return self.__get_reg_fp32(self.reg.JOINT_JERK, 1)
 
     def set_joint_jerk(self, jerk):
-        """Set the jerk of the joint-space
+        """Set the jerk of the joint - space
 
         Args:
-            jerk (float): jerk [rad/s^3]
+            jerk(float): jerk[rad / s ^ 3]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.JOINT_JERK, jerk, 1)
 
     def get_joint_maxacc(self):
-        """Get the maximum acceleration of the joint-space
+        """Get the maximum acceleration of the joint - space
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            maxacc (float): Maximum acceleration [rad/s^2]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            maxacc(float): Maximum acceleration[rad / s ^ 2]
         """
         return self.__get_reg_fp32(self.reg.JOINT_MAXACC, 1)
 
     def set_joint_maxacc(self, maxacc):
-        """Set the maximum acceleration of the joint-space
+        """Set the maximum acceleration of the joint - space
 
         Args:
-            maxacc (float): maximum acceleration [rad/s^2]
+            maxacc(float): maximum acceleration[rad / s ^ 2]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.JOINT_MAXACC, maxacc, 1)
 
@@ -711,8 +791,8 @@ class _ArmApiBase:
         """Get the coordinate offset of the end tcp tool
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            offset (list): Offset cartesian position [mm mm mm rad rad rad]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            offset(list): Offset cartesian position[mm mm mm rad rad rad]
         """
         return self.__get_reg_fp32(self.reg.TCP_OFFSET, 6)
 
@@ -720,10 +800,10 @@ class _ArmApiBase:
         """Set the coordinate offset of the end tcp tool
 
         Args:
-            offset (list): Offset cartesian position [mm mm mm rad rad rad]
+            offset(list): Offset cartesian position[mm mm mm rad rad rad]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.TCP_OFFSET, offset, 6)
 
@@ -731,8 +811,8 @@ class _ArmApiBase:
         """Get payload mass and center of gravity
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value (list): [Mass, CoGx, CoGy, CoGz], mass in kilograms, Center of Gravity in millimeter
+            ret(int): Function execution result code, refer to appendix for code meaning
+            value(list): [Mass, CoGx, CoGy, CoGz], mass in kilograms, Center of Gravity in millimeter
         """
         return self.__get_reg_fp32(self.reg.LOAD_PARAM, 4)
 
@@ -740,41 +820,37 @@ class _ArmApiBase:
         """Set payload mass and center of gravity
         This function must be called, when the payload weight or weight distribution changes
         when the robot picks up or puts down a heavy workpiece.
-        The dir is specified as a vector, [CoGx, CoGy, CoGz], displacement,from the toolmount.
+        The dir is specified as a vector, [CoGx, CoGy, CoGz], displacement, from the toolmount.
 
         Args:
-            mass (float): mass in kilograms
-            dir (list): Center of Gravity: [CoGx, CoGy, CoGz] in millimeter
+            mass(float): mass in kilograms
+            dir(list): Center of Gravity: [CoGx, CoGy, CoGz] in millimeter
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = [mass, dir[0], dir[1], dir[2]]
         return self.__set_reg_fp32(self.reg.LOAD_PARAM, txdata, 4)
 
     def get_gravity_dir(self):
-        """NOT public in current version
-                Get the direction of the acceleration experienced by the robot
+        """Get the direction of the acceleration experienced by the robot
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value (list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
+            ret(int): Function execution result code, refer to appendix for code meaning
+            value(list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
         """
         return self.__get_reg_fp32(self.reg.GRAVITY_DIR, 3)
 
     def set_gravity_dir(self, value):
-        """NOT public in current version
-                Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
-        this corresponds to an accleration of gaway from the earth's centre
-        $ set_gravity_dir([0, 9.82*sin(theta), 9.82*cos(theta)]) // will set the acceleration for a robot
-        that is rotated ”theta” radians around the x-axis of the robot base coordinate system
-                It is recommended to use this feature with Studio, which provides graphical interface Settings
+        """Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
+        this corresponds to an accleration of gaway from the earth's centre.
+        It is recommended to use this feature with Studio, which provides graphical interface Settings.
 
         Args:
-            value (list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
+            value(list): 3D vector, describing the direction of the gravity, relative to the base of the robot.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_fp32(self.reg.GRAVITY_DIR, value, 3)
 
@@ -783,8 +859,8 @@ class _ArmApiBase:
         Get the sensitivity of collision detection
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            num (int): 0-5
+            ret(int): Function execution result code, refer to appendix for code meaning
+            num(int): 0 - 5
         """
         return self.__get_reg_int8(self.reg.COLLIS_SENS, 1)
 
@@ -793,33 +869,31 @@ class _ArmApiBase:
         Set the sensitivity of collision detection
 
         Args:
-            num (int): 0-5, 0 means close collision detection, sensitivity increases from 1 to 5,
+            num(int): 0 - 5, 0 means close collision detection, sensitivity increases from 1 to 5,
             and 5 is the highest sensitivity
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_int8(self.reg.COLLIS_SENS, int(num), 1)
 
     def get_teach_sens(self):
-        """NOT public in current version
-        Get the sensitivity of freedrive
+        """Get the sensitivity of freedrive
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            num (int): 90-110
+            ret(int): Function execution result code, refer to appendix for code meaning
+            num(int): 90 - 110
         """
         return self.__get_reg_int8(self.reg.TEACH_SENS, 1)
 
     def set_teach_sens(self, num):
-        """NOT public in current version
-        Set the sensitivity of freedrive
+        """Set the sensitivity of freedrive
 
         Args:
-            num (int): 90-110, sensitivity increases from 90% to 110%, and 110 is the highest sensitivity
+            num (int): 90 - 110, sensitivity increases from 90 % to 110 %, and 110 is the highest sensitivity
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.__set_reg_int8(self.reg.TEACH_SENS, int(num), 1)
 
@@ -833,8 +907,8 @@ class _ArmApiBase:
         The calculation of this pose is based on the current target joint positions.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (list): The current target TCP vector; ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            pos(list): The current target TCP vector; ([X, Y, Z, Rx, Ry, Rz])[mm mm mm rad rad rad]
 
         """
         return self.__get_reg_fp32(self.reg.TCP_POS_CURR, 6)
@@ -846,8 +920,8 @@ class _ArmApiBase:
         The calculation of this pose is based on the actual robot encoder readings.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (list): The current actual TCP vector : ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            pos(list): The current actual TCP vector: ([X, Y, Z, Rx, Ry, Rz])[mm mm mm rad rad rad]
         """
         return 0, 0
 
@@ -858,8 +932,8 @@ class _ArmApiBase:
         especially during cceleration and heavy loads.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            joints (list): The current target joint angular position vector in rad
+            ret(int): Function execution result code, refer to appendix for code meaning
+            joints(list): The current target joint angular position vector in rad
 
         """
         return self.__get_reg_fp32(self.reg.JOINT_POS_CURR, self.__AXIS)
@@ -872,88 +946,99 @@ class _ArmApiBase:
         especially during cceleration and heavy loads.
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            joints (list): The actual target joint angular position vector in rad
+            ret(int): Function execution result code, refer to appendix for code meaning
+            joints(list): The actual target joint angular position vector in rad
         """
         return 0, 0
 
-    def get_ik(self, pose, qnear=None):
-        """NOT public in current version
-        Inverse kinematic transformation (tool space -> joint space).
-        If qnear is defined, the solution closest to qnear is returned.
+    def get_ik(self, pose, qnear):
+        """Inverse kinematic transformation(tool space -> joint space).
+        qnear, the solution closest to qnear is returned.
         Otherwise, the solution closest to the current joint positions is returned.
 
         Args:
-            pose (list): tool pose: ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]
-            qnear (list): joint positions (Optional) [rad]
+            pose(list): tool pose: ([X, Y, Z, Rx, Ry, Rz])[mm mm mm rad rad rad]
+            qnear(list): joint positions [rad]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            joints (list): joint positions [rad]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            joints(list): joint positions[rad]
         """
-        return 0, 0
+        txdata = [0] * (6 + self.__AXIS)
+        for i in range(6):
+            txdata[i] = pose[i]
+        for i in range(self.__AXIS):
+            txdata[6 + i] = qnear[i]
+
+        return self.__get_reg_fp32_fp32(self.reg.CAL_IK, self.__AXIS, txdata, 6 + self.__AXIS)
 
     def get_fk(self, joints):
-        """NOT public in current version
-        Forward kinematic transformation (joint space -> tool space).
+        """Forward kinematic transformation(joint space -> tool space).
 
         Args:
-            joints (list): joint positions [rad]
+            joints(list): joint positions[rad]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            pos (list): tool pose: ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]
+            ret(int): Function execution result code, refer to appendix for code meaning
+            pos(list): tool pose: ([X, Y, Z, Rx, Ry, Rz])[mm mm mm rad rad rad]
         """
-        return 0, 0
+        txdata = [0] * self.__AXIS
+        for i in range(self.__AXIS):
+            txdata[i] = joints[i]
+        return self.__get_reg_fp32_fp32(self.reg.CAL_FK, 6, txdata, self.__AXIS)
 
-    def is_joint_limit(self, joint):
-        """NOT public in current version
-        Checks if the given joints is reachable and within the current safety limits of the robot.
+    def is_joint_limit(self, joints):
+        """Checks if the given joints is reachable and within the current safety limits of the robot.
 
         Args:
-            joints (list): joint positions [rad]
+            joints(list): joint positions[rad]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value [bool]: True if within limits, false otherwise
+            ret(int): Function execution result code, refer to appendix for code meaning
+            value[bool]: True if within limits, false otherwise
         """
-        return 0, 1
+        txdata = [0] * self.__AXIS
+        for i in range(self.__AXIS):
+            txdata[i] = joints[i]
+        return self.__get_reg_int8_fp32(self.reg.IS_JOINT_LIMIT, 1, txdata, self.__AXIS)
 
     def is_tcp_limit(self, pose):
-        """NOT public in current version
-        Checks if the given pose is reachable and within the current safety limits of the robot.
-        This check considers joint limits (if the target pose is specified as joint positions), safety planes limits,
+        """Checks if the given pose is reachable and within the current safety limits of the robot.
+        This check considers joint limits(if the target pose is specified as joint positions), safety planes limits,
         If a solution is found when applying the inverse kinematics to the given target TCP pose,
         this pose is considered reachable.
 
         Args:
-            pose (list): Target pose: ([X, Y, Z, Rx, Ry, Rz]) [mm mm mm rad rad rad]
+            pose(list): Target pose: ([X, Y, Z, Rx, Ry, Rz])[mm mm mm rad rad rad]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value [bool]: True if within limits, false otherwise
+            ret(int): Function execution result code, refer to appendix for code meaning
+            value[bool]: True if within limits, false otherwise
         """
-        return 0, 1
+        txdata = [0] * 6
+        for i in range(6):
+            txdata[i] = pose[i]
+        return self.__get_reg_int8_fp32(self.reg.IS_TCP_LIMIT, 1, txdata, 6)
 
     ############################################################
     #                       Rs485 Api
     ############################################################
 
     def get_utrc_int8_now(self, line, id, reg):
-        """Read the 8-bit register of the device through the utrc protocol
+        """Read the 8 - bit register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
 
         Returns:
-            value[0] (int): Function execution result code, refer to appendix for code meaning
-            value[1] (int): Data
+            value[0](int): Function execution result code, refer to appendix for code meaning
+            value[1](int): Data
 
         """
         txdata = bytes([line])
@@ -969,20 +1054,20 @@ class _ArmApiBase:
             return ret, ret
 
     def set_utrc_int8_now(self, line, id, reg, value):
-        """Write the 8-bit register of the device through the utrc protocol
+        """Write the 8 - bit register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (int): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(int): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -999,18 +1084,18 @@ class _ArmApiBase:
     def get_utrc_int32_now(self, line, id, reg):
         """Read the int32 register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
 
         Returns:
-            value[0] (int): Function execution result code, refer to appendix for code meaning
-            value[1] (int): Data
+            value[0](int): Function execution result code, refer to appendix for code meaning
+            value[1](int): Data
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1028,18 +1113,18 @@ class _ArmApiBase:
     def set_utrc_int32_now(self, line, id, reg, value):
         """Write the int32 register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (int): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(int): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1056,18 +1141,18 @@ class _ArmApiBase:
     def get_utrc_float_now(self, line, id, reg):
         """Read the float register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
 
         Returns:
-            value[0] (int): Function execution result code, refer to appendix for code meaning
-            value[1] (float): Data
+            value[0](int): Function execution result code, refer to appendix for code meaning
+            value[1](float): Data
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1085,18 +1170,18 @@ class _ArmApiBase:
     def set_utrc_float_now(self, line, id, reg, value):
         """Write the float register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (float): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(float): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1113,18 +1198,18 @@ class _ArmApiBase:
     def get_utrc_int8n_now(self, line, id, reg, len):
         """Read the int8s register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
 
         Returns:
-            value[0] (int): Function execution result code, refer to appendix for code meaning
-            value[1] (list): Data
+            value[0](int): Function execution result code, refer to appendix for code meaning
+            value[1](list): Data
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1143,18 +1228,18 @@ class _ArmApiBase:
     def set_utrc_int8n_now(self, line, id, reg, len, value):
         """Write the int8s register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (list): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(list): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1172,20 +1257,20 @@ class _ArmApiBase:
             return ret
 
     def set_utrc_int8_que(self, line, id, reg, value):
-        """Write the 8-bit register of the device through the utrc protocol
+        """Write the 8 - bit register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (int): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(int): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1201,18 +1286,18 @@ class _ArmApiBase:
     def set_utrc_int32_que(self, line, id, reg, value):
         """Write the int32 register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (int): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(int): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1228,18 +1313,18 @@ class _ArmApiBase:
     def set_utrc_float_que(self, line, id, reg, value):
         """Write the float register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (float): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(float): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
 
         txdata = bytes([line])
@@ -1254,20 +1339,20 @@ class _ArmApiBase:
             return ret
 
     def set_utrc_int8n_que(self, line, id, reg, len, value):
-        """Write the 8-bit register of the device through the utrc protocol
+        """Write the 8 - bit register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            value (list): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            value(list): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1288,17 +1373,17 @@ class _ArmApiBase:
         Communicate immediately, do not wait for the execution of other instructions in the queue
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            timeout_ms (int): Receive data timeout [ms]
-            tx_len (int): The length of the data sent
-            rx_len (int): The length of the received data
-            tx_data (list): Data sent
+            timeout_ms(int): Receive data timeout[ms]
+            tx_len(int): The length of the data sent
+            rx_len(int): The length of the received data
+            tx_data(list): Data sent
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
         """
         if tx_len > 125 or rx_len > 125:
             return -991, 0, 0, 0
@@ -1325,14 +1410,14 @@ class _ArmApiBase:
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            tx_len (int): The length of the data sent
-            tx_data (list): Data sent
+            tx_len(int): The length of the data sent
+            tx_data(list): Data sent
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         if tx_len > 125:
             return -99
@@ -1352,19 +1437,19 @@ class _ArmApiBase:
     def get_utrc_u8float_now(self, line, id, reg, num):
         """Read the float list register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            num ([uint8_t]): The number of values in a register
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            num([uint8_t]): The number of values in a register
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            value ([float]): Data
+            ret(int): Function execution result code, refer to appendix for code meaning
+            value([float]): Data
         """
 
         txdata = bytes([line])
@@ -1384,19 +1469,19 @@ class _ArmApiBase:
     def set_utrc_u8float_now(self, line, id, reg, num, value):
         """Write the float list register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
-            num ([uint8_t]): The number of values in a register
-            value ([type]): Data
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
+            num([uint8_t]): The number of values in a register
+            value([type]): Data
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
 
         txdata = bytes([line])
@@ -1415,18 +1500,18 @@ class _ArmApiBase:
     def get_utrc_nfloat_now(self, line, id, reg, len):
         """Read the floats register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
-        Protocol details refer to [utrc_communication_protocol]
+        Protocol details refer to[utrc_communication_protocol]
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
-            reg (int): Device register address [0x01-0x7F]
+            id(int): ID number of the device[1 - 125]
+            reg(int): Device register address[0x01 - 0x7F]
 
         Returns:
-            value[0] (int): Function execution result code, refer to appendix for code meaning
-            value[1] (list): Data
+            value[0](int): Function execution result code, refer to appendix for code meaning
+            value[1](list): Data
         """
         txdata = bytes([line])
         txdata += bytes([id])
@@ -1448,18 +1533,18 @@ class _ArmApiBase:
         """Gets the input value for the GPIO module
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
+            id(int): ID number of the device[1 - 125]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
                 data[0]: Functional status
-                data[1]: digit I/O input
+                data[1]: digit I / O input
                 data[2]: dac num
-                data[2-N]: dac value
+                data[2 - N]: dac value
         """
 
         txdata = bytes([line])
@@ -1482,18 +1567,18 @@ class _ArmApiBase:
         """Gets the output value of the GPIO module
 
         Args:
-            line (int): RS485 line
+            line(int): RS485 line
                 2: RS485 at the end of the robotic arm
                 3: RS485 for control box
-            id (int): ID number of the device [1-125]
+            id(int): ID number of the device[1 - 125]
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
                 data[0]: Functional status
-                data[1]: digit I/O output
+                data[1]: digit I / O output
                 data[2]: adc num
-                data[2-N]: adc value
+                data[2 - N]: adc value
         """
 
         txdata = bytes([line])
@@ -1516,52 +1601,52 @@ class _ArmApiBase:
     #                    End-Tool GPIO Api
     ############################################################
     def get_tgpio_in(self):
-        """Gets the input value of the end-tool GPIO module
+        """Gets the input value of the end - tool GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
                 data[0]: controller function
-                data[1]: digit I/O input
+                data[1]: digit I / O input
                 data[2]: dac num
-                data[2-N]: dac value
+                data[2 - N]: dac value
         """
         return self.__get_gpio_in(RS485_LINE.TGPIO, self.tgpio_id)
 
     def get_tgpio_out(self):
-        """Gets the output value of the end-tool GPIO module
+        """Gets the output value of the end - tool GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
                 data[0]: gpio function
-                data[1]: digit I/O output
+                data[1]: digit I / O output
                 data[2]: adc num
-                data[2-N]: adc value
+                data[2 - N]: adc value
         """
         return self.__get_gpio_ou(RS485_LINE.TGPIO, self.tgpio_id)
 
     def set_tgpio_digit_out(self, value):
-        """Set the end-tool GPIO module to output digital I/O
-        The higher 16 bits are the I/O to be set, and the lower 16 bits are the value to be set
+        """Set the end - tool GPIO module to output digital I / O
+        The higher 16 bits are the I / O to be set, and the lower 16 bits are the value to be set
 
         Args:
-            value (uint32_t): Digital I/O output value
-                For example: 0x00010001 => Set GPIO 1 to high
-                For example: 0x00030003 => Set GPIO 1 and 2 to high
+            value(uint32_t): Digital I / O output value
+                For example: 0x00010001 = > Set GPIO 1 to high
+                For example: 0x00030003 = > Set GPIO 1 and 2 to high
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.set_utrc_int32_now(RS485_LINE.TGPIO, self.tgpio_id, 0x13, int(value))
 
     def get_tgpio_uuid(self):
-        """Get the UUID of the end-tool GPIO module
+        """Get the UUID of the end - tool GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
-                           12-bit string
+            ret(int): Function execution result code, refer to appendix for code meaning
+            uuid(string): The unique code of umbratek products is also a certificate of repair and warranty
+                           12 - bit string
         """
         ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.UUID[0], GPIO_REG.UUID[2])
         print(ret)
@@ -1573,11 +1658,11 @@ class _ArmApiBase:
         return ret, string
 
     def get_tgpio_sw_version(self):
-        """Get the software version of the end-tool GPIO module
+        """Get the software version of the end - tool GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (string): Software version, 12-bit string
+            ret(int): Function execution result code, refer to appendix for code meaning
+            version(string): Software version, 12 - bit string
         """
         ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.SW_VERSION[0],
                                             GPIO_REG.SW_VERSION[2])
@@ -1589,11 +1674,11 @@ class _ArmApiBase:
         return ret, version
 
     def get_tgpio_hw_version(self):
-        """Get the hardware version of the end-tool GPIO module
+        """Get the hardware version of the end - tool GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (string): Hardware version, 12-bit string
+            ret(int): Function execution result code, refer to appendix for code meaning
+            version(string): Hardware version, 12 - bit string
         """
         ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.HW_VERSION[0],
                                             GPIO_REG.HW_VERSION[2])
@@ -1613,12 +1698,12 @@ class _ArmApiBase:
         """Gets the input value of the controller GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
                 data[0]: controller function
-                data[1]: digit I/O input
+                data[1]: digit I / O input
                 data[2]: dac num
-                data[2-N]: dac value
+                data[2 - N]: dac value
         """
         return self.__get_gpio_in(RS485_LINE.CGPIO, self.cgpio_id)
 
@@ -1626,26 +1711,26 @@ class _ArmApiBase:
         """Gets the output value of the controller GPIO module
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            data (list): Data received
+            ret(int): Function execution result code, refer to appendix for code meaning
+            data(list): Data received
                 data[0]: gpio function
-                data[1]: digit I/O output
+                data[1]: digit I / O output
                 data[2]: adc num
-                data[2-N]: adc value
+                data[2 - N]: adc value
         """
         return self.__get_gpio_ou(RS485_LINE.CGPIO, self.cgpio_id)
 
     def set_cgpio_digit_out(self, value):
-        """Set the controller GPIO module to output digital I/O
-        The higher 16 bits are the I/O to be set, and the lower 16 bits are the value to be set
+        """Set the controller GPIO module to output digital I / O
+        The higher 16 bits are the I / O to be set, and the lower 16 bits are the value to be set
 
         Args:
-            value (uint32_t): Digital I/O output value
-                For example: 0x00010001 => Set GPIO 1 to high
-                For example: 0x00030003 => Set GPIO 1 and 2 to high
+            value(uint32_t): Digital I / O output value
+                For example: 0x00010001 = > Set GPIO 1 to high
+                For example: 0x00030003 = > Set GPIO 1 and 2 to high
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
+            ret(int): Function execution result code, refer to appendix for code meaning
         """
         return self.set_utrc_int32_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.DIGITOU[0], int(value))
 
@@ -1653,9 +1738,9 @@ class _ArmApiBase:
         """Get the UUID of the NTRO Controller
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            uuid (string): The unique code of umbratek products is also a certificate of repair and warranty
-                           12-bit string
+            ret(int): Function execution result code, refer to appendix for code meaning
+            uuid(string): The unique code of umbratek products is also a certificate of repair and warranty
+                           12 - bit string
         """
         ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.UUID[0], GPIO_REG.UUID[2])
         print(ret)
@@ -1670,8 +1755,8 @@ class _ArmApiBase:
         """Get the software version of the NTRO Controller
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (string): Software version, 12-bit string
+            ret(int): Function execution result code, refer to appendix for code meaning
+            version(string): Software version, 12 - bit string
         """
         ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.SW_VERSION[0],
                                             GPIO_REG.SW_VERSION[2])
@@ -1686,8 +1771,8 @@ class _ArmApiBase:
         """Get the hardware version of the NTRO Controller
 
         Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning
-            version (string): Hardware version, 12-bit string
+            ret(int): Function execution result code, refer to appendix for code meaning
+            version(string): Hardware version, 12 - bit string
         """
         ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.HW_VERSION[0],
                                             GPIO_REG.HW_VERSION[2])

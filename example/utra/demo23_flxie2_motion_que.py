@@ -16,7 +16,7 @@ from utapi.utra.utra_flxie_api import UtraFlxiE2Api
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.description = 'ubot demo'
+    parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)
     args = parser.parse_args()
 

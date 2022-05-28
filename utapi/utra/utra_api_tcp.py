@@ -7,8 +7,8 @@
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
 
-from base.arm_api_base import _ArmApiBase
-from common.socket_tcp import SocketTcp
+from utapi.base.arm_api_base import _ArmApiBase
+from utapi.common.socket_tcp import SocketTcp
 import logging
 
 

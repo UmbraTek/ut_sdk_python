@@ -18,7 +18,7 @@ if __name__ == '__main__':
     """This is a demo of movement in Tool space.
     """
     parser = argparse.ArgumentParser()
-    parser.description = 'ubot demo'
+    parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)
     args = parser.parse_args()
 
@@ -57,3 +57,17 @@ if __name__ == '__main__':
     print("moveto_cartesian_lineb   :%d" % (ret))
     ret = ubot.moveto_cartesian_lineb(pos1, speed, acc, 5.0, 80)
     print("moveto_cartesian_lineb   :%d" % (ret))
+
+    joint1 = [170.5 / 57.296, 3.5 / 57.296, -125.6 / 57.296, -39.1 / 57.296, -90 / 57.296, -9.5 / 57.296]
+    joint2 = [133.8 / 57.296, 13.1 / 57.296, -114.3 / 57.296, -37.3 / 57.296, -90 / 57.296, -46.2 / 57.296]
+    joint3 = [133.8 / 57.296, 3 / 57.296, -75.9 / 57.296, 11.1 / 57.296, -90 / 57.296, -46.2 / 57.296]
+    ret = ubot.plan_sleep(5)  # This function must be called if the desired speed is continuous
+    print("move_sleep    :%d" % (ret))
+    ret = ubot.moveto_joint_lineb(joint1, speed, acc, 5.0, 80)
+    print("moveto_joint_lineb   :%d" % (ret))
+    ret = ubot.moveto_joint_lineb(joint2, speed, acc, 5.0, 60)
+    print("moveto_joint_lineb   :%d" % (ret))
+    ret = ubot.moveto_joint_lineb(joint3, speed, acc, 5.0, 30)
+    print("moveto_joint_lineb   :%d" % (ret))
+    ret = ubot.moveto_joint_lineb(joint1, speed, acc, 5.0, 80)
+    print("moveto_joint_lineb   :%d" % (ret))

@@ -6,7 +6,7 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from base.arm_report_config import ArmReportConfig
+from utapi.base.arm_report_config import ArmReportConfig
 
 
 class UtraReportConfig10Hz(ArmReportConfig):

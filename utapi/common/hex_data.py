@@ -73,13 +73,20 @@ def bytes_to_int32_big(data, num=1):
         return ret
 
 
-def bytes_to_uint32_big(data):
-    byte = bytes([data[0]])
-    byte += bytes([data[1]])
-    byte += bytes([data[2]])
-    byte += bytes([data[3]])
-    str1 = struct.unpack(">I", byte)
-    return str1[0]
+def bytes_to_uint32_big(data, num=1):
+    ret = [0] * num
+    for i in range(num):
+        byte = bytes([data[i * 4]])
+        byte += bytes([data[i * 4 + 1]])
+        byte += bytes([data[i * 4 + 2]])
+        byte += bytes([data[i * 4 + 3]])
+        str1 = struct.unpack(">I", byte)
+        ret[i] = str1[0]
+
+    if num == 1:
+        return ret[0]
+    else:
+        return ret
 
 
 """
@@ -139,8 +146,14 @@ def int32_to_bytes_big(data, num=1):
     return str1
 
 
-def uint32_to_bytes_big(data):
-    str1 = bytes(struct.pack(">I", data))
+def uint32_to_bytes_big(data, num=1):
+    if num == 1:
+        str1 = bytes(struct.pack(">I", data))
+        return str1
+    else:
+        str1 = bytes(struct.pack(">I", data[0]))
+        for i in range(num - 1):
+            str1 += bytes(struct.pack(">I", data[i + 1]))
     return str1
 
 

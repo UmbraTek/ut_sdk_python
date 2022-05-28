@@ -13,17 +13,22 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from utapi.adra.adra_api_serial import AdraApiSerial
 from utapi.adra.adra_api_tcp import AdraApiTcp
 from utapi.adra.adra_api_udp import AdraApiUdp
+from utapi.adra.adra_api_file import AdraApiFile
 
 
 def print_help():
     print("Select the communication interface and protocol type")
-    print("./demo4_get_param arg1 arg2")
-    print("    [arg1] 1: Serial COM")
-    print("           2: Serial ACM")
-    print("           3: TCP")
-    print("           4: UDP")
-    print("    [arg2] 0: RS485")
+    print("./demo1_motion_position arg1 arg2")
+    print("    [arg1] PC physical connection interface")
+    print("           1: USB-To-RS485/CAN /dev/ttyUSBx")
+    print("           2: USB-To-RS485/CAN /dev/ttyACMx")
+    print("           3: EtherNet-To-RS485/CAN TCP")
+    print("           4: EtherNet-To-RS485/CAN UDP")
+    print("           5: PCIe-To-RS485/CAN /dev/ttyUT0")
+    print("    [arg2] Actuator interface")
+    print("           0: RS485")
     print("           1: CAN")
+    print("    [arg3] Parameters(optional), such as serial port number, TCP/UDP IP address,")
 
 
 def main():
@@ -81,6 +86,16 @@ def main():
             ip = "192.168.1.168"
 
         adra = AdraApiUdp(ip, 5001, bus_type)
+        if adra.is_error():
+            return
+
+    elif int(sys.argv[1]) == 5:
+        if len(sys.argv) == 4:
+            com = "/dev/ttyUT" + sys.argv[3]
+        else:
+            com = "/dev/ttyUT0"
+
+        adra = AdraApiFile(com)
         if adra.is_error():
             return
 

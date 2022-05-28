@@ -18,7 +18,7 @@ if __name__ == '__main__':
     """This is a demo of movement in joint space.
     """
     parser = argparse.ArgumentParser()
-    parser.description = 'ubot demo'
+    parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)
     args = parser.parse_args()
 
@@ -51,3 +51,15 @@ if __name__ == '__main__':
     print("moveto_joint_p2p   :%d" % (ret))
     ret = ubot.moveto_joint_p2p(joint3, speed, acc, 60)
     print("moveto_joint_p2p   :%d" % (ret))
+
+    pos1 = [653, 105, 427, 180 / 57.296, 0.0, 70 / 57.296]
+    pos2 = [518, 56, 286, 180 / 57.296, 0.0, 130 / 57.296]
+    pos3 = [433, -290, 286, 180 / 57.296, 0.0, 90 / 57.296]
+    ret = ubot.moveto_cartesian_p2p(pos3, speed, acc, 60)
+    print("moveto_cartesian_p2p   :%d" % (ret))
+    ret = ubot.moveto_cartesian_p2p(pos1, speed, acc, 60)
+    print("moveto_cartesian_p2p   :%d" % (ret))
+    ret = ubot.moveto_cartesian_p2p(pos2, speed, acc, 60)
+    print("moveto_cartesian_p2p   :%d" % (ret))
+    ret = ubot.moveto_cartesian_p2p(pos3, speed, acc, 60)
+    print("moveto_cartesian_p2p   :%d" % (ret))

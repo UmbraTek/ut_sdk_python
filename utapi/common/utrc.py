@@ -6,9 +6,9 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common import print_msg
-from common import crc16
-from common import hex_data
+from utapi.common import print_msg
+from utapi.common import crc16
+from utapi.common import hex_data
 
 
 class UTRC_RX_ERROR:
@@ -61,12 +61,12 @@ class UtrcType:
     def unpack(self, buf):
         self.buf = buf
         if len(buf) < 6:
-            print("[UtrcTyp] Error: UTRC_RX_ERROR.LEN: %d" % (len(buf)))
+            print("[UtrcType] Error: UTRC_RX_ERROR.LEN: %d" % (len(buf)))
             return UTRC_RX_ERROR.LEN
 
         self.len = buf[2] & 0x7F
         if self.len + 5 != len(buf):
-            print("[UtrcTyp] Error: UTRC_RX_ERROR.LEN: %d %d" % (self.len, len(buf)))
+            print("[UtrcType] Error: UTRC_RX_ERROR.LEN: %d %d" % (self.len, len(buf)))
             return UTRC_RX_ERROR.LEN
 
         self.master_id = buf[0]
@@ -146,21 +146,21 @@ class UtrcClient:
         if ret != 0:
             return (ret, rx_utrc)
         elif rx_utrc.master_id != tx_utrc.slave_id and tx_utrc.slave_id != 0x55:
-            print("[UtrcCli] Error: UTRC_RX_ERROR.M_ID: %d %d" % (rx_utrc.master_id, tx_utrc.slave_id))
+            print("[UtrcClie] Error: UTRC_RX_ERROR.M_ID: %d %d" % (rx_utrc.master_id, tx_utrc.slave_id))
             ret = UTRC_RX_ERROR.M_ID
         elif rx_utrc.slave_id != tx_utrc.master_id:
-            print("[UtrcCli] Error: UTRC_RX_ERROR.S_ID: %d %d" % (rx_utrc.slave_id, tx_utrc.master_id))
+            print("[UtrcClie] Error: UTRC_RX_ERROR.S_ID: %d %d" % (rx_utrc.slave_id, tx_utrc.master_id))
             ret = UTRC_RX_ERROR.S_ID
         elif rx_utrc.state != 0:
             ret = UTRC_RX_ERROR.STATE
         elif rx_utrc.len != r_len + 1 and r_len != 0x55:
-            print("[UtrcCli] Error: UTRC_RX_ERROR.LEN: %d %d" % (rx_utrc.len, r_len))
+            print("[UtrcClie] Error: UTRC_RX_ERROR.LEN: %d %d" % (rx_utrc.len, r_len))
             ret = UTRC_RX_ERROR.LEN
         elif rx_utrc.rw != tx_utrc.rw:
-            print("[UtrcCli] Error: UTRC_RX_ERROR.RW: %d %d" % (rx_utrc.rw, tx_utrc.rw))
+            print("[UtrcClie] Error: UTRC_RX_ERROR.RW: %d %d" % (rx_utrc.rw, tx_utrc.rw))
             ret = UTRC_RX_ERROR.RW
         elif rx_utrc.cmd != tx_utrc.cmd:
-            print("[UtrcCli] Error: UTRC_RX_ERROR.CMD: %d %d" % (rx_utrc.cmd, tx_utrc.cmd))
+            print("[UtrcClie] Error: UTRC_RX_ERROR.CMD: %d %d" % (rx_utrc.cmd, tx_utrc.cmd))
             ret = UTRC_RX_ERROR.CMD
 
         return (ret, rx_utrc)
@@ -243,4 +243,4 @@ class UtrcDecode:
                     if rx_que.full():
                         rx_que.get()
                     rx_que.put(self.rxbuf)
-                    # print_msg.nhex("[SockSeri] rx_que.put: ", self.rxbuf, len(self.rxbuf))
+                    # print_msg.nhex("[UtrcDeco] rx_que.put: ", self.rxbuf, len(self.rxbuf))

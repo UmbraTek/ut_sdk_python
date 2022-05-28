@@ -6,10 +6,10 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from common.utrc import UtrcType, UtrcClient, UtrcDecode
-from common.utcc import UtccType, UtccClient
-from common.socket_serial import SocketSerial
-from flxiv.flxivl_api_base import FlxiVlApiBase
+from utapi.common.utrc import UtrcType, UtrcClient, UtrcDecode
+from utapi.common.utcc import UtccType, UtccClient
+from utapi.common.socket_serial import SocketSerial
+from utapi.flxiv.flxivl_api_base import FlxiVlApiBase
 
 
 class FlxiVlApiSerial(FlxiVlApiBase):

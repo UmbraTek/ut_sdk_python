@@ -19,7 +19,7 @@ from utapi.utra.utra_report_config import UtraReportConfig10Hz
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.description = 'ubot report test'
+    parser.description = 'UTRA report demo'
     parser.add_argument("--m", help="[1: status10hz] [2: status100hz] [3: config]", default=1, type=int)
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)
     args = parser.parse_args()
