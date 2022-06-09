@@ -499,9 +499,9 @@ class _ServoApiBase:
         return 0
 
     def _get_spostau_current(self):
-        self.mutex.acquire()
+        #self.mutex.acquire()
         ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.SPOSTAU_CURRENT, None)
-        self.mutex.release()
+        #self.mutex.release()
 
         if ret == UTRC_RX_ERROR.TIMEOUT:
             num = 0
