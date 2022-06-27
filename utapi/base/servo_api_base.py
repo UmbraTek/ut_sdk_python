@@ -545,4 +545,3 @@ class _ServoApiBase:
         self.mutex.release()
 
         return ret, broadcast_num, pos, tau
-
