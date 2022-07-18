@@ -855,22 +855,22 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.GRAVITY_DIR, value, 3)
 
     def get_collis_sens(self):
-        """NOT public in current version
+        """
         Get the sensitivity of collision detection
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
-            num(int): 0 - 5
+            num(int): 0 - 101
         """
         return self.__get_reg_int8(self.reg.COLLIS_SENS, 1)
 
     def set_collis_sens(self, num):
-        """NOT public in current version
+        """
         Set the sensitivity of collision detection
 
         Args:
-            num(int): 0 - 5, 0 means close collision detection, sensitivity increases from 1 to 5,
-            and 5 is the highest sensitivity
+            num(int): 0 - 101, 101 means close collision detection, 0 is the most sensitive, but has the highest error probability, 
+            and 100 is the least sensitive, but has the lowest error probability.
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
