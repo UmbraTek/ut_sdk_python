@@ -39,7 +39,7 @@ if __name__ == '__main__':
     joint = [0, 0, 0, 0, 0, 0, 0]
     speed = 30 / 57.296
     acc = 3
-    ret = ubot.moveto_joint_p2p(joint, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint, speed, acc, 0)
 
     if "0001308001" in ver_hw:
         joint1 = [0, 56 / 57.296, 30 / 57.296, 126 / 57.296, 30 / 57.296, 70 / 57.296, 0]
@@ -55,11 +55,11 @@ if __name__ == '__main__':
 
     speed = 30 / 57.296
     acc = 3
-    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
-    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
-    ret = ubot.moveto_joint_p2p(joint2, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint2, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
-    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))

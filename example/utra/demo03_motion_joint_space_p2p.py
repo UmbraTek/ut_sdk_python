@@ -33,33 +33,35 @@ if __name__ == '__main__':
     ret = ubot.set_motion_status(0)  # Set the running status of the arm, 0: Set to ready
     print("set_motion_status :%d" % (ret))
 
-    joint = [0, 0, 0, 0, 0, 0]
     speed = 30 / 57.296
     acc = 3
-    ret = ubot.moveto_joint_p2p(joint, speed, acc, 60)
+    joint = [0, 0, 0, 0, 0, 0]
+    ret = ubot.moveto_joint_p2p(joint, speed, acc, 0)
 
+    speed = 30 / 57.296
+    acc = 3
     joint1 = [20 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 40 / 57.296]
     joint2 = [20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
     joint3 = [-20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
-    speed = 30 / 57.296
-    acc = 3
-    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
-    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
-    ret = ubot.moveto_joint_p2p(joint2, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint2, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
-    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint3, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
 
+    speed = 30 / 57.296
+    acc = 3
     pos1 = [653, 105, 427, 180 / 57.296, 0.0, 70 / 57.296]
-    pos2 = [518, 56, 286, 180 / 57.296, 0.0, 130 / 57.296]
-    pos3 = [433, -290, 286, 180 / 57.296, 0.0, 90 / 57.296]
-    ret = ubot.moveto_cartesian_p2p(pos3, speed, acc, 60)
+    pos2 = [518, 56, 486, 180 / 57.296, 0.0, 130 / 57.296]
+    pos3 = [433, -290, 486, 180 / 57.296, 0.0, 90 / 57.296]
+    ret = ubot.moveto_cartesian_p2p(pos3, speed, acc, 0)
     print("moveto_cartesian_p2p   :%d" % (ret))
-    ret = ubot.moveto_cartesian_p2p(pos1, speed, acc, 60)
+    ret = ubot.moveto_cartesian_p2p(pos1, speed, acc, 0)
     print("moveto_cartesian_p2p   :%d" % (ret))
-    ret = ubot.moveto_cartesian_p2p(pos2, speed, acc, 60)
+    ret = ubot.moveto_cartesian_p2p(pos2, speed, acc, 0)
     print("moveto_cartesian_p2p   :%d" % (ret))
-    ret = ubot.moveto_cartesian_p2p(pos3, speed, acc, 60)
+    ret = ubot.moveto_cartesian_p2p(pos3, speed, acc, 0)
     print("moveto_cartesian_p2p   :%d" % (ret))

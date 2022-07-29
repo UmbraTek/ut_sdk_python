@@ -35,26 +35,24 @@ if __name__ == '__main__':
 
     speed = 30 / 57.296
     acc = 3
-    ret = ubot.moveto_home_p2p(speed, acc, 60)
+    ret = ubot.moveto_home_p2p(speed, acc, 0)
 
     joint1 = [0 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 0 / 57.296]
-    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
 
+    speed = 50.0
+    acc = 100.0
     pos1 = [418, 56, 186, 3.14, 0.0, 1.5]
     pos2 = [418, -256, 186, 3.14, 0.0, 1.5]
     pos3 = [418, -256, 486, 3.14, 0.0, 1.5]
-    speed = 50.0
-    acc = 100.0
-
-    ret = ubot.moveto_cartesian_line(pos3, speed, acc, 5.0)
+    ret = ubot.moveto_cartesian_line(pos3, speed, acc, 0)
     print("moveto_cartesian_line   :%d" % (ret))
-
-    ret = ubot.moveto_cartesian_circle(pos1, pos2, speed, acc, 5, 50)
+    ret = ubot.moveto_cartesian_circle(pos1, pos2, speed, acc, 0, 50)
     print("moveto_cartesian_circle   :%d" % (ret))
-    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 5, 90)
+    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 0, 90)
     print("moveto_cartesian_circle   :%d" % (ret))
-    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 5, 130)
+    ret = ubot.moveto_cartesian_circle(pos2, pos3, speed, acc, 0, 130)
     print("moveto_cartesian_circle   :%d" % (ret))
 
     joint1 = [170.5 / 57.296, 3.5 / 57.296, -125.6 / 57.296, -39.1 / 57.296, -90 / 57.296, -9.5 / 57.296]
@@ -63,9 +61,9 @@ if __name__ == '__main__':
     # ret = ubot.plan_sleep(5)
     ret = ubot.moveto_joint_line(joint3, speed, acc, 5.0)
     print("moveto_joint_line   :%d" % (ret))
-    ret = ubot.moveto_joint_circle(joint1, joint2, speed, acc, 5, 50)
+    ret = ubot.moveto_joint_circle(joint1, joint2, speed, acc, 0, 50)
     print("moveto_joint_circle   :%d" % (ret))
-    ret = ubot.moveto_joint_circle(joint2, joint3, speed, acc, 5, 100)
+    ret = ubot.moveto_joint_circle(joint2, joint3, speed, acc, 0, 100)
     print("moveto_joint_circle   :%d" % (ret))
-    ret = ubot.moveto_joint_circle(joint2, joint3, speed, acc, 5, 130)
+    ret = ubot.moveto_joint_circle(joint2, joint3, speed, acc, 0, 130)
     print("moveto_joint_circle   :%d" % (ret))

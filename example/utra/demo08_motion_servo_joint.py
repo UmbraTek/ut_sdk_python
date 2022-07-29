@@ -41,8 +41,13 @@ if __name__ == '__main__':
     joint1 = [20 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 40 / 57.296]
     joint2 = [20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
     joint3 = [-20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
-    time = [5, 5, 5]
+    time = [20, 20, 20]
     joint = [joint1, joint2, joint3]
 
+    ret = ubot.plan_sleep(5)
+    ret = ubot.moveto_servo_joint(3, joint, time)
+    print("moveto_servo_joint   :%d" % (ret))
+    ret = ubot.moveto_servo_joint(3, joint, time)
+    print("moveto_servo_joint   :%d" % (ret))
     ret = ubot.moveto_servo_joint(3, joint, time)
     print("moveto_servo_joint   :%d" % (ret))

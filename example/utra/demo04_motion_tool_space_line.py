@@ -35,31 +35,30 @@ if __name__ == '__main__':
 
     speed = 30 / 57.296
     acc = 3
-    ret = ubot.moveto_home_p2p(speed, acc, 60)
+    ret = ubot.moveto_home_p2p(speed, acc, 0)
 
     joint1 = [0 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 0 / 57.296]
-    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 60)
+    ret = ubot.moveto_joint_p2p(joint1, speed, acc, 0)
     print("moveto_joint_p2p   :%d" % (ret))
 
+    speed = 120.0
+    acc = 200.0
     pos1 = [418, 56, 186, 3.14, 0.0, 1.5]
     pos2 = [418, -256, 186, 3.14, 0.0, 1.5]
     pos3 = [418, -256, 486, 3.14, 0.0, 1.5]
-    speed = 120.0
-    acc = 200.0
-
-    ret = ubot.moveto_cartesian_line(pos1, speed, acc, 5.0)
+    ret = ubot.moveto_cartesian_line(pos1, speed, acc, 0)
     print("moveto_cartesian_line   :%d" % (ret))
-    ret = ubot.moveto_cartesian_line(pos2, speed, acc, 5.0)
+    ret = ubot.moveto_cartesian_line(pos2, speed, acc, 0)
     print("moveto_cartesian_line   :%d" % (ret))
-    ret = ubot.moveto_cartesian_line(pos3, speed, acc, 5.0)
+    ret = ubot.moveto_cartesian_line(pos3, speed, acc, 0)
     print("moveto_cartesian_line   :%d" % (ret))
 
     joint1 = [170.5 / 57.296, 3.5 / 57.296, -125.6 / 57.296, -39.1 / 57.296, -90 / 57.296, -9.5 / 57.296]
     joint2 = [133.8 / 57.296, 13.1 / 57.296, -114.3 / 57.296, -37.3 / 57.296, -90 / 57.296, -46.2 / 57.296]
     joint3 = [133.8 / 57.296, 3 / 57.296, -75.9 / 57.296, 11.1 / 57.296, -90 / 57.296, -46.2 / 57.296]
-    ret = ubot.moveto_joint_line(joint1, speed, acc, 5.0)
+    ret = ubot.moveto_joint_line(joint1, speed, acc, 0)
     print("moveto_joint_line   :%d" % (ret))
-    ret = ubot.moveto_joint_line(joint2, speed, acc, 5.0)
+    ret = ubot.moveto_joint_line(joint2, speed, acc, 0)
     print("moveto_joint_line   :%d" % (ret))
-    ret = ubot.moveto_joint_line(joint3, speed, acc, 5.0)
+    ret = ubot.moveto_joint_line(joint3, speed, acc, 0)
     print("moveto_joint_line   :%d" % (ret))
