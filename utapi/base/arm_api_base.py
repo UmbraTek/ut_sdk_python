@@ -323,6 +323,9 @@ class _ArmApiBase:
 
     def set_brake_enable(self, axis, en):
         """Only set the enable state of the joint brake
+        Danger: After opening the brake, the robotic arm will lose its locking force,
+        each joint will rotate due to gravity, and each joint of the robotic arm will do free fall.
+        Before enabling the brake, it is necessary to ensure that each joint of the robotic arm is externally secured.
 
         Args:
             axis (int): Joint axis, if it is greater than the maximum number of joints, set all joints
@@ -658,9 +661,9 @@ class _ArmApiBase:
             Take a look at application example Demo08
 
         Args:
-            frames_num(int32_t): Number of locations, up to three
+            frames_num(int32_t): Number of target coordinates, up to three
             mvjoint(list): joint positions[rad], That's equal to the number of joints times the number of frames
-            mvtime(list): The time to move to the target is specified in as many frames as possible[seconds]
+            mvtime(list): Time to move to target[seconds]
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning

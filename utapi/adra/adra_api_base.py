@@ -1008,7 +1008,7 @@ class AdraApiBase(_ServoApiBase):
         return self._set_ctau_target(sid, eid, tau)
 
     def set_cpostau_target(self, sid, eid, pos, tau):
-        u"""Broadcast mode (one packet) sets multiple actuator target torque and feedforward torques.
+        u"""Broadcast mode (one packet) sets multiple actuator target position and feedforward torques.
 
         Args:
             sid (int): ID of the first actuator.
@@ -1020,6 +1020,20 @@ class AdraApiBase(_ServoApiBase):
             ret (int): meaningless.
         """
         return self._set_cpostau_target(sid, eid, pos, tau)
+
+    def set_cposvel_target(self, sid, eid, pos, vel):
+        u"""Broadcast mode (one packet) sets multiple actuator target position and target speed.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+            pos (list): Target position of actuators, in ascending order of ID number.
+            vel (list): Target speed of actuators, in ascending order of ID number.
+
+        Returns:
+            ret (int): meaningless.
+        """
+        return self._set_cposvel_target(sid, eid, pos, vel)
 
     def get_spostau_current(self):
         u"""Gets the current position of the actuator, the current torque, and number of write broadcasts received.

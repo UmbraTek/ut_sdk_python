@@ -30,7 +30,7 @@ class SERVO_REG:
     TEMP_LIMIT = [0x18, 0, 2, 2, 0]
     VOLT_LIMIT = [0x19, 0, 2, 2, 0]
     CURR_LIMIT = [0x1A, 0, 4, 4, 0]
-    BRAKE_PWM = [0x1F, 0, 1, 1, 0]
+    DEBUG_ARG = [0x1F, 1, 4, 5, 0]
 
     MOTION_MDOE = [0x20, 0, 1, 1, 0]
     MOTION_ENABLE = [0x21, 0, 1, 1, 0]
@@ -75,6 +75,7 @@ class SERVO_REG:
     CPOS_TARGET = [0x60, null, null, 0, null]  # startId endId pos*Axis
     CTAU_TARGET = [0x61, null, null, 0, null]  # startId endId tau*Axis
     CPOSTAU_TARGET = [0x62, null, null, 0, null]  # startId endId (pos+tau)*Axis
+    CPOSVEL_TARGET = [0x64, null, null, 0, null]  # startId endId (pos+vel)*Axis
     SPOSTAU_CURRENT = [0x68, 0, 8 + 1, null, null]  # Gets the current position and torque of an actuator
     CPOSTAU_CURRENT = [0x69, 2, 8 + 1, null, null]  # startId endId
 

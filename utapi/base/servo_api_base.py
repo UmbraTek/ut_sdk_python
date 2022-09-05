@@ -455,9 +455,9 @@ class _ServoApiBase:
         SERVO_REG.CPOS_TARGET[3] = 2 + 4 * num
         self.mutex.acquire()
         self._send(UTRC_RW.W, SERVO_REG.CPOS_TARGET, txdata)
+        self.connect_to_id(id, id)
         self.mutex.release()
 
-        self.connect_to_id(id, id)
         return 0
 
     def _set_ctau_target(self, sid, eid, tau):
@@ -471,9 +471,9 @@ class _ServoApiBase:
         SERVO_REG.CTAU_TARGET[3] = 2 + 4 * num
         self.mutex.acquire()
         self._send(UTRC_RW.W, SERVO_REG.CTAU_TARGET, txdata)
+        self.connect_to_id(id, id)
         self.mutex.release()
 
-        self.connect_to_id(id, id)
         return 0
 
     def _set_cpostau_target(self, sid, eid, pos, tau):
@@ -493,9 +493,31 @@ class _ServoApiBase:
         self.mutex.acquire()
         self.connect_to_id(0x55, 0x55)
         self._send(UTRC_RW.W, SERVO_REG.CPOSTAU_TARGET, txdata)
+        self.connect_to_id(id, id)
         self.mutex.release()
 
+        return 0
+
+    def _set_cposvel_target(self, sid, eid, pos, vel):
+        id = self.id
+
+        num = (eid - sid + 1)
+        posvel = [0] * num * 2
+        for i in range(num):
+            posvel[i * 2] = pos[i]
+            posvel[i * 2 + 1] = vel[i]
+
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        txdata += hex_data.fp32_to_bytes_big(posvel, num * 2)
+        SERVO_REG.CPOSVEL_TARGET[3] = 4 * num * 2 + 2
+
+        self.mutex.acquire()
+        self.connect_to_id(0x55, 0x55)
+        self._send(UTRC_RW.W, SERVO_REG.CPOSVEL_TARGET, txdata)
         self.connect_to_id(id, id)
+        self.mutex.release()
+
         return 0
 
     def _get_spostau_current(self):
