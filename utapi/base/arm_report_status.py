@@ -106,10 +106,10 @@ class ArmReportStatus(threading.Thread):
             j1 = k + i * 4 + 17
             j2 = j1 + self.axis * 4
             j3 = j2 + 6 * 4
-            self.joint[i] = struct.unpack("<f", rx_data[j1:j1 + 4])
+            self.joint[i] = struct.unpack("<f", rx_data[j1:j1 + 4])[0]
             if i < 6:
-                self.pose[i] = struct.unpack("<f", rx_data[j2:j2 + 4])
-            self.tau[i] = struct.unpack("<f", rx_data[j3:j3 + 4])
+                self.pose[i] = struct.unpack("<f", rx_data[j2:j2 + 4])[0]
+            self.tau[i] = struct.unpack("<f", rx_data[j3:j3 + 4])[0]
         self.__is_update = 1
         if self.irq_fun != 0:
             self.irq_fun.irq_run(self)

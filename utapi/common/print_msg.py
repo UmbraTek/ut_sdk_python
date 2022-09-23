@@ -42,3 +42,9 @@ def nvect_f(str1, data, len1):
     for i in range(len1):
         str1 += "%f " % data[i]
     print(str1)
+
+
+def nvect_106f(str1, data, len1):
+    for i in range(len1):
+        str1 += "%10.6f " % data[i]
+    print(str1)

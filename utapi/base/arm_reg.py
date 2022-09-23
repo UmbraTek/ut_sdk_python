@@ -54,8 +54,8 @@ class ARM_REG:
         self.MoveJ_P2PB = [0x39, null, null, null, null]
         self.MOVEJ_HOME = [0x3A, null, null, 12, 4]
         self.MOVE_SLEEP = [0x3B, null, null, 4, 4]
-        self.MOVE_SERVOJ = [0x3C, null, null, (AXIS + 3) * 4, 4]
-        self.MOVES_JOINT = [0x3D, null, null, 0x55, 4]
+        self.MOVEJ_SERVO = [0x3D, null, null, 0x55, 4]
+        self.MOVET_SERVO = [0x3E, null, null, 0x55, 4]
         self.PLAN_SLEEP = [0x3F, null, null, 4, 4]
 
         self.TCP_JERK = [0x40, 0, 4, 4, 4]
@@ -67,6 +67,7 @@ class ARM_REG:
         self.GRAVITY_DIR = [0x46, 0, 12, 12, 0]
         self.COLLIS_SENS = [0x47, 0, 1, 1, 0]
         self.TEACH_SENS = [0x48, 0, 1, 1, 0]
+        self.LIMIT_FUN = [0x49, 0, 4, 4, 0]
 
         self.TCP_POS_CURR = [0x50, 0, 24, null, null]
         self.JOINT_POS_CURR = [0x51, 0, AXIS * 4, null, null]
@@ -75,9 +76,9 @@ class ARM_REG:
         self.IS_JOINT_LIMIT = [0x54, AXIS * 4, 1, null, null]
         self.IS_TCP_LIMIT = [0x55, 24, 1, null, null]
 
-        self.UTRC_INT32_NOW = [0x61, 3, 8, 7, 1]
         # [line id reg] [ret value] [line id reg value] [ret]
         self.UTRC_INT8_NOW = [0x60, 3, 2, 4, 1]
+        self.UTRC_INT32_NOW = [0x61, 3, 8, 7, 1]
         self.UTRC_FP32_NOW = [0x62, 3, 8, 7, 1]
         self.UTRC_INT8N_NOW = [0x63, 4, 0x55, 0x55, 1]
 
@@ -93,7 +94,6 @@ class ARM_REG:
         # [line id reg num] [ret value] [line id reg num value] [ret]
         self.UTRC_U8FP32_NOW = [0x6A, 4, 8, 8, 1]
         self.UTRC_FP32N_NOW = [0x6B, 4, 0x55, 0x55, 1]
-
         self.GPIO_IN = [0x6E, 2, 0x55, " ", " "]
         self.GPIO_OU = [0x6F, 2, 0x55, " ", " "]
 

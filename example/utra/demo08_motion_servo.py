@@ -45,9 +45,23 @@ if __name__ == '__main__':
     joint = [joint1, joint2, joint3]
 
     ret = ubot.plan_sleep(5)
-    ret = ubot.moveto_servo_joint(3, joint, time)
-    print("moveto_servo_joint   :%d" % (ret))
-    ret = ubot.moveto_servo_joint(3, joint, time)
-    print("moveto_servo_joint   :%d" % (ret))
-    ret = ubot.moveto_servo_joint(3, joint, time)
-    print("moveto_servo_joint   :%d" % (ret))
+    ret = ubot.moveto_joint_servo(3, joint, time)
+    print("moveto_joint_servo   :%d" % (ret))
+    #ret = ubot.moveto_joint_servo(3, joint, time)
+    #print("moveto_joint_servo   :%d" % (ret))
+    #ret = ubot.moveto_joint_servo(3, joint, time)
+    #print("moveto_joint_servo   :%d" % (ret))
+
+    pos1 = [418, 56, 186, 3.14, 0.0, 1.5]
+    pos2 = [418, -256, 186, 3.14, 0.0, 1.5]
+    pos3 = [418, -256, 486, 3.14, 0.0, 1.5]
+    time = [20, 20, 20]
+    pose = [pos1, pos2, pos3]
+
+    ret = ubot.plan_sleep(5)
+    ret = ubot.moveto_cartesian_servo(3, pose, time)
+    print("moveto_cartesian_servo   :%d" % (ret))
+    ret = ubot.moveto_cartesian_servo(3, pose, time)
+    print("moveto_cartesian_servo   :%d" % (ret))
+    ret = ubot.moveto_cartesian_servo(3, pose, time)
+    print("moveto_cartesian_servo   :%d" % (ret))

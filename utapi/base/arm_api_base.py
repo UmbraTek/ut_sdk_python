@@ -596,7 +596,7 @@ class _ArmApiBase:
         Args:
             mvjoint(list): target joint positions[rad]
             mvvelo(float): joint speed of leading axis[rad / s]
-            mvacc(float): joint acceleration of leading axis[rad / sˆ2]
+            mvacc(float): joint acceleration of leading axis[rad / s^2]
             mvtime(float): NOT used in current version
 
         Returns:
@@ -623,7 +623,7 @@ class _ArmApiBase:
 
         Args:
             mvvelo(float): joint speed of leading axis[rad / s]
-            mvacc(float): joint acceleration of leading axis[rad / sˆ2]
+            mvacc(float): joint acceleration of leading axis[rad / s^2]
             mvtime(float): NOT used in current version
 
         Returns:
@@ -635,27 +635,10 @@ class _ArmApiBase:
         txdata[2] = mvtime
         return self.__set_reg_fp32(self.reg.MOVEJ_HOME, txdata, 3)
 
-    def moveto_servoj(self, mvjoint, mvvelo, mvacc, mvtime):
-        """NOT public in current version
-
-        Args:
-            mvjoint(list): joint positions[rad]
-            mvvelo(float): NOT used in current version
-            mvacc(float): NOT used in current version
-            mvtime(float): NOT used in current version
-
-        Returns:
-            ret(int): Function execution result code, refer to appendix for code meaning
-        """
-        txdata = [0] * (self.__AXIS + 3)
-        for i in range(self.__AXIS):
-            txdata[i] = mvjoint[i]
-        txdata[self.__AXIS] = mvvelo
-        txdata[self.__AXIS + 1] = mvacc
-        txdata[self.__AXIS + 2] = mvtime
-        return self.__set_reg_fp32(self.reg.MOVE_SERVOJ, txdata, self.__AXIS + 3)
-
     def moveto_servo_joint(self, frames_num, mvjoint, mvtime):
+        return self.moveto_joint_servo(frames_num, mvjoint, mvtime)
+
+    def moveto_joint_servo(self, frames_num, mvjoint, mvtime):
         """Move to position(linear in joint - space) When using this command,
             And specify the time to execute to the target position
             Take a look at application example Demo08
@@ -679,8 +662,41 @@ class _ArmApiBase:
         datas = hex_data.uint32_to_bytes_big(frames_num)
         datas += hex_data.fp32_to_bytes_big(txdata, data_len)
 
-        self.reg.MOVES_JOINT[3] = (data_len + 1) * 4
-        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.MOVES_JOINT, datas)
+        self.reg.MOVEJ_SERVO[3] = (data_len + 1) * 4
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.MOVEJ_SERVO, datas)
+        return ret
+
+    def moveto_cartesian_servo(self, frames_num, mvpose, mvtime):
+        """Move to position(linear in joint - space) When using this command,
+            And specify the time to execute to the target position
+            Take a look at application example Demo08
+
+        Args:
+            frames_num(int32_t): Number of target coordinates, up to three
+            mvpose(list): cartesian position [mm mm mm rad rad rad], That's equal to the number of 6 times the number of frames
+            mvtime(list): Time to move to target[seconds]
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        data_len = frames_num * (6 + 1)
+        txdata = [0] * data_len
+
+        if frames_num == 1:
+            for j in range(6):
+                txdata[j] = mvpose[j]
+            txdata[6] = mvtime
+        else:
+            for i in range(frames_num):
+                for j in range(6):
+                    txdata[i * (6 + 1) + j] = mvpose[i][j]
+                txdata[i * (6 + 1) + 6] = mvtime[i]
+
+        datas = hex_data.uint32_to_bytes_big(frames_num)
+        datas += hex_data.fp32_to_bytes_big(txdata, data_len)
+
+        self.reg.MOVET_SERVO[3] = (data_len + 1) * 4
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.MOVET_SERVO, datas)
         return ret
 
     def move_sleep(self, time):
@@ -900,6 +916,57 @@ class _ArmApiBase:
         """
         return self.__set_reg_int8(self.reg.TEACH_SENS, int(num), 1)
 
+    def get_limit_fun(self):
+        """Get the function of limit
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+            fun(int): bit0-angle limit, bit1-geometry limit.(High: open, Low:Close)
+        """
+        return self.__get_reg_int32(self.reg.LIMIT_FUN, 1)
+
+    def set_limit_fun(self, fun):
+        """Set the function of limit.(High: open, Low:Close)
+        The Angle limit and geometric collision functions are enabled by default
+        and can be turned off or on using this function.
+
+        Args:
+            fun (int): bit0-angle limit, bit1-geometry limit.
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        return self.__set_reg_int32(self.reg.LIMIT_FUN, fun, 1)
+
+    def set_limit_angle_enable(self, en):
+        """Turn off/on Angle limit detection
+
+        Args:
+            en (int): 0 Turn off Angle limit detection
+                      1 Turn on  Angle limit detection
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        if en:
+            return self.set_limit_fun(0x00010001)
+        else:
+            return self.set_limit_fun(0x00010000)
+
+    def set_limit_geometry_enable(self, en):
+        """Turn off/on geometry limit detection
+
+        Args:
+            en (int): 0 Turn off geometry limit detection
+                      1 Turn on  geometry limit detection
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        if en:
+            return self.set_limit_fun(0x00020002)
+        else:
+            return self.set_limit_fun(0x00020000)
     ############################################################
     #                       State Api
     ############################################################
