@@ -118,13 +118,25 @@ def uint8_to_bytes_big(data, num=1):
     return str1
 
 
-def int16_to_bytes_big(data):
-    str1 = bytes(struct.pack(">h", data))
+def int16_to_bytes_big(data, num=1):
+    if num == 1:
+        str1 = bytes(struct.pack(">h", data))
+        return str1
+    else:
+        str1 = bytes(struct.pack(">h", data[0]))
+        for i in range(num - 1):
+            str1 += bytes(struct.pack(">h", data[i + 1]))
     return str1
 
 
-def uint16_to_bytes_big(data):
-    str1 = bytes(struct.pack(">H", data))
+def uint16_to_bytes_big(data, num=1):
+    if num == 1:
+        str1 = bytes(struct.pack(">H", data))
+        return str1
+    else:
+        str1 = bytes(struct.pack(">H", data[0]))
+        for i in range(num - 1):
+            str1 += bytes(struct.pack(">H", data[i + 1]))
     return str1
 
 

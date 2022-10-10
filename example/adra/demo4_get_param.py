@@ -165,6 +165,11 @@ def main():
     print("[%d]get_tau_limit_max : %d, value = %f" % (adra.virid, ret, value))
     ret, value = adra.get_tau_limit_diff()
     print("[%d]get_tau_limit_diff: %d, value = %f" % (adra.virid, ret, value))
+
+    ret, ontime, offtime = adra.get_brake_delay()
+    print("[%d]get_brake_delay   : %d, value = %d %d" % (adra.virid, ret, ontime, offtime))
+    ret = adra.set_brake_delay(ontime, offtime)
+    print("[%d]set_brake_delay   : %d" % (adra.virid, ret))
     print(" ")
 
     ret, value = adra.get_pos_target()

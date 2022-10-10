@@ -214,11 +214,29 @@ class _ServoApiBase:
     def _set_curr_limit(self, value):
         return self.__set_reg_fp32(SERVO_REG.CURR_LIMIT, value)
 
-    def _get_brake_pwm(self):
-        return self.__get_reg_int8(SERVO_REG.SERVO_REG, )
+    def _get_brake_delay(self):
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.BRAKE_DELAY, None)
+        ontime = hex_data.bytes_to_uint16_big(bus_rmsg.data[0:2])
+        offtime = hex_data.bytes_to_uint16_big(bus_rmsg.data[2:4])
+        return ret, ontime, offtime
 
-    def _set_brake_pwm(self, brake_pwm):
-        return self.__set_reg_uint8(SERVO_REG.SERVO_REG, int(brake_pwm), 1)
+    def _set_brake_delay(self, ontime, offtime):
+        txdata = hex_data.uint16_to_bytes_big(int(ontime))
+        txdata += hex_data.uint16_to_bytes_big(int(offtime))
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.BRAKE_DELAY, txdata)
+        return ret
+
+    def _get_debug_arg(self, i):
+        txdata = bytes([int(i)])
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.DEBUG_ARG, txdata)
+        p = hex_data.bytes_to_fp32_big(bus_rmsg.data[0:4])
+        return ret, p
+
+    def _set_debug_arg(self, i, param):
+        txdata = bytes([int(i)])
+        txdata += hex_data.fp32_to_bytes_big(float(param))
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.DEBUG_ARG, txdata)
+        return ret
 
     ############################################################
     #                       Control Api

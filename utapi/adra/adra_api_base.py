@@ -290,6 +290,44 @@ class AdraApiBase(_ServoApiBase):
         """
         return self._set_curr_limit(value)
 
+    def get_brake_delay(self):
+        u"""Get the delay time for closing and opening the brake when the actuator is enabled and disabled
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            ontime (uint16_t): Time to open the brake after the actuator is enabled
+            offtime (uint16_t): Time to close the brake after the actuator is disabled
+        """
+        return self._get_brake_delay()
+
+    def set_brake_delay(self, ontime, offtime):
+        u"""Set the delay time for closing and opening the brake when the actuator is enabled and disabled.
+        The unit is 1/28,000 seconds. For example, if the value is set to 14000, the delay is 0.5 seconds.
+        When the actuator is enabled, the internal execution process of the actuator is as follows:
+            1. Enable the motion controller of the actuator
+            2. Delay ontime
+            3. Close the brake
+        When the actuator is disabled, the internal execution process of the actuator is as follows:
+            1. Open the brake
+            2. Delay offtime
+            3. Disabled the motion controller of the actuator
+        During the delay, no other motor commands are executed
+
+        Args:
+            ontime (uint16_t): Time to open the brake after the actuator is enabled
+            offtime (uint16_t): Time to close the brake after the actuator is disabled
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+        """
+        return self._set_brake_delay(ontime, offtime)
+
+    def get_debug_arg(self, i):
+        return self._get_debug_arg(i)
+
+    def set_debug_arg(self, i, param):
+        return self._set_debug_arg(i, param)
+
     ############################################################
     #                       Control Api
     ############################################################
