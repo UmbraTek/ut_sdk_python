@@ -14,6 +14,13 @@ from utapi.flxiv.flxivl_api_serial import FlxiVlApiSerial
 
 
 def main():
+    u"""
+    This is demo to get the state and parameters of the gripper.
+    The gripper ID is 102 and RS485 baud rate is 921600.
+    Linux requires super user privileges to run code.
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/flxiv/demo2_flxivl_get_param.py
+    """
     flxi = FlxiVlApiSerial("/dev/ttyUSB0", 921600)
     flxi.connect_to_id(102)
 

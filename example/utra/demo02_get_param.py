@@ -15,7 +15,9 @@ from utapi.utra.utra_api_tcp import UtraApiTcp
 from utapi.common import print_msg
 
 if __name__ == '__main__':
-    """This is a demo to get ubot parameters, status and other information
+    u"""This is a demo to get ubot parameters, status and other information
+    run command:
+        python3 example/utra/demo02_get_param.py --ip 192.168.1.xxx
     """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA demo'

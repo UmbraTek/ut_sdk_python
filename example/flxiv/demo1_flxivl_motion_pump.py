@@ -22,6 +22,13 @@ def check_ret(ret, fun):
 
 
 def main():
+    u"""
+    This demo is to control the gripper enable/disable.
+    The gripper ID is 102 and RS485 baud rate is 921600.
+    Linux requires super user privileges to run code
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/flxiv/demo1_flxivl_motion_pump.py
+    """
     flxi = FlxiVlApiSerial("/dev/ttyUSB0", 921600)  # instantiate the flxi executor api class
     flxi.connect_to_id(102)  # The ID of the connected target actuator, where the ID is 1
 

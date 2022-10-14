@@ -387,6 +387,15 @@ class _ArmApiBase:
         """
         return self.__set_reg_int8(self.reg.MOTION_STATUS, int(state), 1)
 
+    def motion_status_into_stop(self):
+        self.set_motion_status(4)
+
+    def motion_status_into_ready(self):
+        self.set_motion_status(0)
+
+    def motion_status_into_pause(self):
+        self.set_motion_status(3)
+
     def get_cmd_num(self):
         """Get the current number of instruction cache
 

@@ -15,6 +15,11 @@ from utapi.utra.utra_api_tcp import UtraApiTcp
 from utapi.utra.utra_flxie_api import UtraFlxiE2Api
 
 if __name__ == '__main__':
+    u"""This is a demo of a robot controlling the FLXI E on robot.
+    The command to control FLXI E will wait for the preceding robot motion command to be executed before taking effect.
+    run command:
+        python3 example/utra/demo23_flxie2_motion_que.py --ip 192.168.1.xxx
+    """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)

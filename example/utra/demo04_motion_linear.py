@@ -15,7 +15,9 @@ from utapi.utra.utra_api_tcp import UtraApiTcp
 
 
 if __name__ == '__main__':
-    """This is a demo of movement in Tool space.
+    u"""This is a demo of movement in Tool space.
+    run command:
+        python3 example/utra/demo04_motion_linear.py --ip 192.168.1.xxx
     """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA demo'

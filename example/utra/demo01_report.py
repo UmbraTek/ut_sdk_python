@@ -18,6 +18,12 @@ from utapi.utra.utra_report_status import UtraReportStatus10Hz
 from utapi.utra.utra_report_config import UtraReportConfig10Hz
 
 if __name__ == '__main__':
+    u"""This is a demo to print the data of three real-time automatically reported ports.
+    run command:
+        python3 example/utra/demo01_report.py --ip 192.168.1.xxx --m 1
+        python3 example/utra/demo01_report.py --ip 192.168.1.xxx --m 2
+        python3 example/utra/demo01_report.py --ip 192.168.1.xxx --m 3
+    """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA report demo'
     parser.add_argument("--m", help="[1: status10hz] [2: status100hz] [3: config]", default=1, type=int)

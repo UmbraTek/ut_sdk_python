@@ -14,6 +14,13 @@ from utapi.flxie.flxie2_api_serial import FlxiE2ApiSerial
 
 
 def main():
+    u"""
+    This is demo to get the state and parameters of the gripper.
+    The gripper ID is 101 and RS485 baud rate is 921600.
+    Linux requires super user privileges to run code.
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/flxie/demo3_flxie2_get_param.py
+    """
     flxi = FlxiE2ApiSerial("/dev/ttyUSB0", 921600)
     flxi.connect_to_id(101)
 

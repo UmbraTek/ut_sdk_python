@@ -10,13 +10,14 @@ import sys
 import argparse
 import os
 
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from utapi.utra.utra_api_tcp import UtraApiTcp
 
 
 if __name__ == '__main__':
-    """This is a demo of servo motion in joint space
+    u"""This is a demo of servo motion in joint space
+    run command:
+        python3 example/utra/demo08_motion_servo.py --ip 192.168.1.xxx
     """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA demo'
@@ -47,10 +48,6 @@ if __name__ == '__main__':
     ret = ubot.plan_sleep(5)
     ret = ubot.moveto_joint_servo(3, joint, time)
     print("moveto_joint_servo   :%d" % (ret))
-    #ret = ubot.moveto_joint_servo(3, joint, time)
-    #print("moveto_joint_servo   :%d" % (ret))
-    #ret = ubot.moveto_joint_servo(3, joint, time)
-    #print("moveto_joint_servo   :%d" % (ret))
 
     pos1 = [418, 56, 186, 3.14, 0.0, 1.5]
     pos2 = [418, -256, 186, 3.14, 0.0, 1.5]

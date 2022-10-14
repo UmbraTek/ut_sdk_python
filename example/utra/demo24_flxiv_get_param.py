@@ -15,6 +15,10 @@ from utapi.utra.utra_api_tcp import UtraApiTcp
 from utapi.utra.utra_flxiv_api import UtraFlxiVApi
 
 if __name__ == '__main__':
+    u"""This is a demo to get the parameters, status and other information of FLXI V on the robot.
+    run command:
+        python3 example/utra/demo24_flxiv_get_param.py --ip 192.168.1.xxx
+    """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)

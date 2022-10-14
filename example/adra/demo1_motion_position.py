@@ -41,10 +41,14 @@ def check_ret(ret, fun):
 
 def main():
     u"""
-    This example is to control the device to move to the specified position.
+    This demo is to control the device to move to the specified position.
     The actuator ID is 1 and RS485 baud rate is 921600.
     For better test results, make sure the actuator's current position is within ±100 radians.
     Linux requires super user privileges to run code
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/adra/demo1_motion_position.py 1 0 0
+    run command(EtherNet-To-RS485 + IP:192.168.1.16):
+        python3 example/adra/demo1_motion_position.py 3 0 16
     """
 
     if len(sys.argv) != 3 and len(sys.argv) != 4:

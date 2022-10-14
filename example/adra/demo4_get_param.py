@@ -18,7 +18,7 @@ from utapi.adra.adra_api_file import AdraApiFile
 
 def print_help():
     print("Select the communication interface and protocol type")
-    print("./demo1_motion_position arg1 arg2")
+    print("./demo4_get_param arg1 arg2")
     print("    [arg1] PC physical connection interface")
     print("           1: USB-To-RS485/CAN /dev/ttyUSBx")
     print("           2: USB-To-RS485/CAN /dev/ttyACMx")
@@ -36,6 +36,10 @@ def main():
     This is demo to get the state and parameters of the actuator.
     The actuator ID is 1 and RS485 baud rate is 921600.
     Linux requires super user privileges to run code.
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/adra/demo4_get_param.py 1 0 0
+    run command(EtherNet-To-RS485 + IP:192.168.1.16):
+        python3 example/adra/demo4_get_param.py 3 0 16
     """
 
     if len(sys.argv) != 3 and len(sys.argv) != 4:

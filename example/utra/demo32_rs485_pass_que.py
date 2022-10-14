@@ -15,6 +15,11 @@ from utapi.utra.utra_api_tcp import UtraApiTcp
 from utapi.base.arm_reg import RS485_LINE
 
 if __name__ == '__main__':
+    u"""This is a demo of pass-through data to rs485 at the end of the manipulator.
+    The command to pass-through data will wait for the preceding robot motion command to be executed before taking effect.
+    run command:
+        python3 example/utra/demo32_rs485_pass_que.py --ip 192.168.1.xxx
+    """
     parser = argparse.ArgumentParser()
     parser.description = 'UTRA demo'
     parser.add_argument("--ip", help=" ", default="127.0.0.1", type=str)

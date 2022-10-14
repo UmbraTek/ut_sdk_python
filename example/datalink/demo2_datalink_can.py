@@ -23,6 +23,8 @@ def print_help():
 
 def main():
     u"""This example tests the EtherNet to CAN module, sends the received CAN data back.
+    run command:
+        python3 example/datalink/demo2_datalink_can.py 1
     """
     if len(sys.argv) != 2:
         print_help()

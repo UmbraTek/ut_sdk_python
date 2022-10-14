@@ -19,13 +19,13 @@ from utapi.adra.adra_api_file import AdraApiFile
 
 def print_help():
     print("Select the communication interface and protocol type")
-    print("./demo1_motion_position arg1 arg2")
+    print("./demo6_motion_ctau arg1 arg2")
     print("    [arg1] PC physical connection interface")
-    print("           1: USB-To-RS485/CAN /dev/ttyUSBx")
-    print("           2: USB-To-RS485/CAN /dev/ttyACMx")
-    print("           3: EtherNet-To-RS485/CAN TCP")
-    print("           4: EtherNet-To-RS485/CAN UDP")
-    print("           5: PCIe-To-RS485/CAN /dev/ttyUT0")
+    print("           1: USB-To-RS485 /dev/ttyUSBx")
+    print("           2: USB-To-RS485 /dev/ttyACMx")
+    print("           3: EtherNet-To-RS485 TCP")
+    print("           4: EtherNet-To-RS485 UDP")
+    print("           5: PCIe-To-RS485 /dev/ttyUT0")
     print("    [arg2] Parameters(optional), such as serial port number, TCP/UDP IP address,")
 
 
@@ -38,10 +38,14 @@ def check_ret(ret, fun):
 
 def main():
     u"""
-    Broadcast mode (one packet) sets 3 actuator target torque.
+    This is a demo of setting the target torque of 3 actuators simultaneously in broadcast mode (one packet).
     This function only supports actuators with RS485 ports.
     The actuator ID is 1 2 3 and RS485 baud rate is 921600.
     Linux requires super user privileges to run code.
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/adra/demo6_motion_ctau.py 1 0
+    run command(EtherNet-To-RS485 + IP:192.168.1.16):
+        python3 example/adra/demo6_motion_ctau.py 3 16
     """
 
     if len(sys.argv) != 2 and len(sys.argv) != 3:

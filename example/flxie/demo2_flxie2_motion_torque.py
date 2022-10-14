@@ -22,6 +22,13 @@ def check_ret(ret, fun):
 
 
 def main():
+    u"""
+    This demo is to control the device to move to the specified torque.
+    The gripper ID is 101 and RS485 baud rate is 921600.
+    Linux requires super user privileges to run code
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/flxie/demo2_flxie2_motion_torque.py
+    """
     flxi = FlxiE2ApiSerial("/dev/ttyUSB0", 921600)  # instantiate the flxi executor api class
     flxi.connect_to_id(101)  # The ID of the connected target actuator, where the ID is 1
 

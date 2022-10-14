@@ -23,6 +23,8 @@ def print_help():
 
 def main():
     u"""This example tests the EtherNet to RS485 module, sends the received RS485 data back.
+    run command:
+        python3 example/datalink/demo1_datalink_rs485.py 1
     """
     if len(sys.argv) != 2:
         print_help()

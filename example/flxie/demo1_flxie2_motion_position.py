@@ -22,17 +22,24 @@ def check_ret(ret, fun):
 
 
 def main():
+    u"""
+    This demo is to control the gripper to move to the specified position.
+    The gripper ID is 101 and RS485 baud rate is 921600.
+    Linux requires super user privileges to run code
+    run command(USB-To-RS485 + COM:/dev/ttyUSB0):
+        python3 example/flxie/demo1_flxie2_motion_position.py
+    """
     flxi = FlxiE2ApiSerial("/dev/ttyUSB0", 921600)  # instantiate the flxi executor api class
-    flxi.connect_to_id(101)  # The ID of the connected target actuator, where the ID is 1
+    flxi.connect_to_id(101)  # The ID of the connected target gripper, where the ID is 1
 
-    ret = flxi.set_motion_mode(1)  # Set actuator motion mode 1: position mode
+    ret = flxi.set_motion_mode(1)  # Set gripper motion mode 1: position mode
     check_ret(ret, "set_motion_mode")
-    ret = flxi.set_motion_enable(1)  # Enable actuator
+    ret = flxi.set_motion_enable(1)  # Enable gripper
     check_ret(ret, "set_motion_enable")
-    ret = flxi.set_pos_target(0.5)  # Set the actuator to move to a position of 0.5 radians
+    ret = flxi.set_pos_target(0)  # Set the gripper to move to a position of 0mm
     check_ret(ret, "set_pos_target")
     time.sleep(5)
-    ret = flxi.set_pos_target(0.1)  # Set the actuator to move to 0.1 rad
+    ret = flxi.set_pos_target(20)  # Set the gripper to move to 20 mm
     check_ret(ret, "set_pos_target")
 
     while 1:

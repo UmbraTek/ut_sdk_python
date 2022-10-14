@@ -319,7 +319,7 @@ class FlxiE2ApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): target position [rad]
+            pos (float): target position [mm]
         """
         return self._get_pos_target()
 
@@ -327,7 +327,7 @@ class FlxiE2ApiBase(_ServoApiBase):
         """Set target position
 
         Args:
-            pos (float): target position [rad]
+            pos (float): target position [mm]
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -339,7 +339,7 @@ class FlxiE2ApiBase(_ServoApiBase):
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
-            pos (float): current position [rad]
+            pos (float): current position [mm]
         """
         return self._get_pos_current()
 
