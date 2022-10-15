@@ -52,7 +52,7 @@ $ python3 setup.py install
 
    [UTRA/OPTI SDK Programming Guide](https://github.com/UmbraTek/ut_sdk_python/tree/master/utapi/utra/readme.md)
 
-   The opti manipulator can refer to the utra demo. All the demos and instructions of the opti series and utra series are universal. It only needs to be noted that the target position of the movement needs to be modified according to different models, because the movement range of each model of the manipulator is not the same.
+   The opti manipulator can refer to the utra demo and api. All the demos and instructions of the opti series and utra series are universal. It only needs to be noted that the target position of the movement needs to be modified according to different models, because the movement range of each model of the manipulator is not the same.
 
    | Demo                                                         | Describe                                   |
    | ------------------------------------------------------------ | ------------------------------------------ |

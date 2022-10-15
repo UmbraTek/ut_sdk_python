@@ -19,6 +19,13 @@ class FLXIV_REG:
 
 class UtraFlxiVApi():
     def __init__(self, utra_api, id=102):
+        u"""Please refer to utapi/flxiv/flxivl_api_base.py for the manual.
+        The function is the same, but this class is controlled through the transmission of the robot arm.
+
+        Args:
+            utra_api (_type_): The control class of the manipulator
+            id (int, optional): The id number of FLXI V. Defaults to 101. Defaults to 102.
+        """
         self.DB_FLG = '[UtraFlxiVApi] '
         self.__is_err = 0
         self.utra = utra_api

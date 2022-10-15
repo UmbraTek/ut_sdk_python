@@ -1,5 +1,7 @@
 # UTRA/OPTI SDK Programming Guide
 
+[TOC]
+
 ## 1 Motion Mode
 
 There are two modes of motion.
@@ -15,11 +17,11 @@ In this mode, the robotic arm will enter the zero gravity mode, and the user can
 * Steps to enter teach mode
 
   ```
-  1. Set the correct load, TCP offset, installation direction and teaching sensitivity of the robot.		// API:set_tcp_load(mass, dir); set_tcp_offset(offset)
-  					// set_gravity_dir(dir); set_teach_sens(num)
-  2. Enable the robot.  						// API: set_motion_enable(8, 1)
+  1. Set the correct load, TCP offset, installation direction and teaching sensitivity of the robot.    // API:set_tcp_load(mass, dir); set_tcp_offset(offset)
+                   // set_gravity_dir(dir); set_teach_sens(num)
+  2. Enable the robot.                        // API: set_motion_enable(8, 1)
   3. Set the state of the robot to 0(ready).  // API: set_motion_status(0)
-  4. Set the teach mode of the robot.  		// API: set_motion_mode(5)
+  4. Set the teach mode of the robot.         // API: set_motion_mode(5)
   ```
 
 * Note
@@ -58,10 +60,10 @@ There are four states that can be get.
 * Steps for using motion instruction
 
   ```
-  1. set_motion_mode(0)			// Set the robot to position control mode
-  2. set_motion_enable(8, 1)		// Enable all joints of the robot
-  3. set_motion_status(0)			// Set the state of the robot to ready
-  4. Moveto_xxx_xxx()				// Motion instruction
+  1. set_motion_mode(0)         // Set the robot to position control mode
+  2. set_motion_enable(8, 1)    // Enable all joints of the robot
+  3. set_motion_status(0)       // Set the state of the robot to ready
+  4. Moveto_xxx_xxx()           // Motion instruction
   ```
 
 ### 3.1 P2P Motion
@@ -95,10 +97,10 @@ There are four states that can be get.
 * Steps to use these instructions
 
   ```
-  1. set_motion_mode(0)					// Set the robot to position control mode
-  2. set_motion_enable(8, 1)				// Enable all joints of the robot
-  3. set_motion_status(0)					// Set the state of the robot to ready
-  4. moveto_joint_p2p()					// Motion instruction
+  1. set_motion_mode(0)         // Set the robot to position control mode
+  2. set_motion_enable(8, 1)    // Enable all joints of the robot
+  3. set_motion_status(0)       // Set the state of the robot to ready
+  4. moveto_joint_p2p()         // Motion instruction
   ```
 
 * Application Scenario
@@ -134,10 +136,10 @@ There are four states that can be get.
 * Steps to use these instructions
 
     ```
-    1. set_motion_mode(0)					// Set the robot to position control mode
-    2. set_motion_enable(8, 1)				// Enable all joints of the robot
-    3. set_motion_status(0)					// Set the state of the robot to ready
-    4. moveto_cartesian_line()				// Motion instruction
+    1. set_motion_mode(0)         // Set the robot to position control mode
+    2. set_motion_enable(8, 1)    // Enable all joints of the robot
+    3. set_motion_status(0)       // Set the state of the robot to ready
+    4. moveto_cartesian_line()    // Motion instruction
     ```
 
 * Application Scenario
@@ -172,13 +174,13 @@ There are four states that can be get.
 * Steps to use these instructions
 
   ```
-  1. set_motion_mode(0)					// Set the robot to position control mode
-  2. set_motion_enable(8, 1)				// Enable all joints of the robot
-  3. set_motion_status(0)					// Set the state of the robot to ready
-  4. plan_sleep(1)						// Set the planning delay. Because more than two motion commands are required when planning the blending path of straight lines and arcs, it is necessary to set a planning delay to ensure that the second/third... motion commands have been received when planning the first motion command. This is to compensate for the delay of the application sending data to the NTRO controller. This delay time can be adjusted, generally between 0.1-3 seconds.
-  5. moveto_cartesian_lineb()				// Motion instruction1
-  6. moveto_cartesian_lineb()				// Motion instruction2
-  7. moveto_cartesian_lineb()				// Motion instruction3......
+  1. set_motion_mode(0)         // Set the robot to position control mode
+  2. set_motion_enable(8, 1)    // Enable all joints of the robot
+  3. set_motion_status(0)       // Set the state of the robot to ready
+  4. plan_sleep(1)              // Set the planning delay. Because more than two motion commands are required when planning the blending path of straight lines and arcs, it is necessary to set a planning delay to ensure that the second/third... motion commands have been received when planning the first motion command. This is to compensate for the delay of the application sending data to the NTRO controller. This delay time can be adjusted, generally between 0.1-3 seconds.
+  5. moveto_cartesian_lineb()   // Motion instruction1
+  6. moveto_cartesian_lineb()   // Motion instruction2
+  7. moveto_cartesian_lineb()   // Motion instruction3......
   ```
 
 * Application Scenario
@@ -213,10 +215,10 @@ There are four states that can be get.
 * Steps to use these instructions
 
   ```
-  1. set_motion_mode(0)					// Set the robot to position control mode
-  2. set_motion_enable(8, 1)				// Enable all joints of the robot
-  3. set_motion_status(0)					// Set the state of the robot to ready
-  4. moveto_cartesian_circle()			// Motion instruction
+  1. set_motion_mode(0)         // Set the robot to position control mode
+  2. set_motion_enable(8, 1)    // Enable all joints of the robot
+  3. set_motion_status(0)       // Set the state of the robot to ready
+  4. moveto_cartesian_circle()  // Motion instruction
   ```
 
 * Application Scenario
@@ -255,13 +257,13 @@ There are four states that can be get.
 
   ```
   1. The trajectory is discretized into N target points according to the calculation method of equal time (it is recommended that the discrete time interval is t=1/400=0.0025s according to the frequency of 400Hz).
-  2. set_motion_mode(0)					// Set the robot to position control mode
-  3. set_motion_enable(8, 1)				// Enable all joints of the robot
-  4. set_motion_status(0)					// Set the state of the robot to ready
+  2. set_motion_mode(0)        // Set the robot to position control mode
+  3. set_motion_enable(8, 1)   // Enable all joints of the robot
+  4. set_motion_status(0)      // Set the state of the robot to ready
   
-  5. plan_sleep(1)						// In order to make the control speed of the robot smoother and more continuous, it is necessary to set a planning delay to ensure that the second/third/more motion commands have been received when planning the first motion command. This is to compensate for the delay of the application sending data to the NTRO controller. This delay time can be adjusted, generally between 0.1-3 seconds.
+  5. plan_sleep(1)             // In order to make the control speed of the robot smoother and more continuous, it is necessary to set a planning delay to ensure that the second/third/more motion commands have been received when planning the first motion command. This is to compensate for the delay of the application sending data to the NTRO controller. This delay time can be adjusted, generally between 0.1-3 seconds.
   
-  6. moveto_servo_joint()					// Send all the N target points to the NTRO controller, and set the running time of each execution instruction to 0. Then the robot will execute according to the planned speed of the trajectory.
+  6. moveto_servo_joint()      // Send all the N target points to the NTRO controller, and set the running time of each execution instruction to 0. Then the robot will execute according to the planned speed of the trajectory.
   
   7. If the running time of each execution instruction is set to 0.005s, because the control cycle of the controller is 400Hz(0.025s), then each instruction controller needs to use two control cycles to execute, which is equivalent to reducing the speed/acceleration of the trajectory by 50%.
   ```
@@ -271,7 +273,48 @@ There are four states that can be get.
   1. An object needs to be tracked in real time. 
   2. The application software needs to plan its trajectory based on the actual scenario.
 
+### 3.6 Queue of instructions 
 
+When multiple motion commands are sent to the controller in a short period of time, the controller will queue these commands and execute them one by one. (Non-motion instructions are executed immediately and not queued).The maximum value of the queue store is 1024, and the API:get_cmd_num() can be used to check how many instructions are currently stored in the queue.
+
+### 3.7  Sleep
+
+There are two sleep commands: plan_sleep()¡¢move_sleep().Both are delays. 
+
+* differences 
+
+  1. move_sleep() is common instructions.
+  2. plan_sleep() is motion instruction.
+
+  First, the controller will have two threads that parse the user's instructions. 
+
+  As mentioned above, the instructions sent by the user are first put into the queue and executed in turn. This execution is thread 1. When the motion instruction is executed, it will put the motion instruction into the second queue for cache and be executed by thread 2.
+  Here, when thread 1 reaches the move_sleep() instruction, it delays execution for the user-specified amount of time and then continues execution of the next instruction. However, when executing plan_sleep(), there is no delay, because plan_sleep() is a motion instruction, thread 1 adds this instruction to the second queue, and when thread 2 reaches plan_sleep(), there is a user-specified delay.
+
+* motion instruction
+
+  The motion instruction are as follows: (the others are common instruction)
+
+  ```
+    int moveto_cartesian_line();
+    int moveto_cartesian_lineb();
+    int moveto_cartesian_p2p();
+    int moveto_cartesian_p2pb();
+    int moveto_cartesian_circle();
+    int moveto_joint_line();
+    int moveto_joint_lineb();
+    int moveto_joint_p2p();
+    int moveto_joint_circle();
+    int moveto_home_p2p();
+    int moveto_servo_joint();
+    int moveto_joint_servo();
+    int moveto_cartesian_servo();
+    int plan_sleep();
+  ```
+
+* Application Scenario
+
+  plan_sleep() mainly serves the moveto_cartesian_lineb()/moveto_cartesian_p2pb()/moveto_joint_lineb()/moveto_servo_joint()/moveto_joint_servo()/moveto_cartesian_servo() directive. Because these instructions need to be executed along with the instructions that follow them, using plan_sleep() eliminates communication, system, and other delays, so that the instructions will be queued when they are executed.
 
 ## 4 Real-Time Data Reporting
 
@@ -301,9 +344,17 @@ There are three automatic reporting methods:
 * Steps to use these api
 
   ```
-  1. ubot = UtraReportStatus10Hz()	// Instantiated class
-  2. ubot.is_update()		// Determine whether the reported data has been updated.
-  3. print(ubot.joint)				// Gets the reported joint position
-  4. print(ubot.motion_status)		// Gets the reported motion status
+  1. ubot = UtraReportStatus10Hz()  // Instantiated class
+  2. ubot.is_update()          // Determine whether the reported data has been updated.
+  3. print(ubot.joint)         // Gets the reported joint position
+  4. print(ubot.motion_status) // Gets the reported motion status
   5. Gets the other data reported
   ```
+
+##  5 Set the parameters 
+
+The controller takes effect immediately after setting the parameters, but the parameters are not saved when the controller is restarted. If you want the parameters to persist after a restart, you need to call the API:saved_parm().
+
+### 5.1 Set collision sensitivity 
+
+Call the API:set_collis_sens() to set collision sensitivity. Refer to the [Collision Sensitivity] section of the user manual for details.

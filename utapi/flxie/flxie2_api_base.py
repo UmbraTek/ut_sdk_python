@@ -226,6 +226,12 @@ class FlxiE2ApiBase(_ServoApiBase):
         """
         return self._set_motion_mode(mode)
 
+    def into_motion_mode_pos(self):
+        return self.set_motion_mode(1)
+
+    def into_motion_mode_tau(self):
+        return self.set_motion_mode(3)
+
     def get_motion_enable(self):
         """Get motion enable status
 
@@ -245,6 +251,12 @@ class FlxiE2ApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning
         """
         return self._set_motion_enable(enable)
+
+    def into_motion_enable(self):
+        return self.set_motion_enable(1)
+
+    def into_motion_disable(self):
+        return self.set_motion_enable(0)
 
     def set_unlock_function(self, fun):
         """When the position of the manipulator grasping tensioning reaches the limit position,

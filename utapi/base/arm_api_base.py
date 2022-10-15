@@ -281,6 +281,12 @@ class _ArmApiBase:
         """
         return self.__set_reg_int8(self.reg.MOTION_MDOE, int(mode), 1)
 
+    def into_motion_mode_pos(self):
+        return self.set_motion_mode(0)
+
+    def into_motion_mode_teach(self):
+        return self.set_motion_mode(2)
+
     def get_motion_enable(self):
         """Get the enable state of the arm
 
@@ -306,6 +312,12 @@ class _ArmApiBase:
         """
         txdata = [int(axis), int(en)]
         return self.__set_reg_int8(self.reg.MOTION_ENABLE, txdata, 2)
+
+    def into_motion_enable(self):
+        return self.set_motion_enable(99, 1)
+
+    def into_motion_disable(self):
+        return self.set_motion_enable(99, 0)
 
     def get_brake_enable(self):
         """Get the enable state of the joint brake

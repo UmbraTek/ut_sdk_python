@@ -19,6 +19,13 @@ class FLXIE_REG:
 
 class UtraFlxiE2Api():
     def __init__(self, utra_api, id=101):
+        u"""Please refer to utapi/flxie/flxie2_api_base.py for the manual.
+        The function is the same, but this class is controlled through the transmission of the robot arm.
+
+        Args:
+            utra_api (_type_): The control class of the manipulator
+            id (int, optional): The id number of FLXI E. Defaults to 101.
+        """
         self.DB_FLG = '[UtraFlxiE2Api] '
         self.__is_err = 0
         self.utra = utra_api
@@ -111,6 +118,15 @@ class UtraFlxiE2Api():
         else:
             return self.utra.set_utrc_int8_que(self.line, self.id, REG.MOTION_MDOE[0], value)
 
+    def into_motion_mode_pos(self, now=True):
+        return self.set_motion_mode(1, now)
+
+    def into_motion_mode_vel(self, now=True):
+        return self.set_motion_mode(2, now)
+
+    def into_motion_mode_tau(self, now=True):
+        return self.set_motion_mode(3, now)
+
     def get_motion_mode(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.MOTION_MDOE[0])
 
@@ -119,6 +135,12 @@ class UtraFlxiE2Api():
             return self.utra.set_utrc_int8_now(self.line, self.id, REG.MOTION_ENABLE[0], value)
         else:
             return self.utra.set_utrc_int8_que(self.line, self.id, REG.MOTION_ENABLE[0], value)
+
+    def into_motion_enable(self, now=True):
+        return self.set_motion_enable(1, now)
+
+    def into_motion_disable(self, now=True):
+        return self.set_motion_enable(0, now)
 
     def get_motion_enable(self):
         return self.utra.get_utrc_int8_now(self.line, self.id, REG.MOTION_ENABLE[0])

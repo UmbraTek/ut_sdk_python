@@ -14,7 +14,7 @@ from utapi.utra.utra_api_tcp import UtraApiTcp
 
 
 if __name__ == '__main__':
-    """"This is a demo of movement in joint space.
+    """This is a demo of movement in joint space.
     run command:
         python3 example/opti/demo03_motion_p2p.py --ip 192.168.1.xxx
     """
