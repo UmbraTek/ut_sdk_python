@@ -76,6 +76,8 @@ if __name__ == '__main__':
     print_msg.nvect_03f("get_tcp_target_pos   : ", value, 6)
     ret, value = ubot.get_joint_target_pos()
     print_msg.nvect_03f("get_joint_target_pos : ", value, axis)
+    ret, value = ubot.get_joint_target_vel()
+    print_msg.nvect_03f("get_joint_target_vel : ", value, axis)
 
     pos = [300, -300, 400, 3.14 * 0.5, 0, 3.14 * 0.5]
     joint = [1.8988, 0.1065, -1.9738, -2.0803, -0.3281, 0]

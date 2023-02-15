@@ -279,7 +279,7 @@ When multiple motion commands are sent to the controller in a short period of ti
 
 ### 3.7  Sleep
 
-There are two sleep commands: plan_sleep()¡¢move_sleep().Both are delays. 
+There are two sleep commands: plan_sleep(), move_sleep().Both are delays. 
 
 * differences 
 

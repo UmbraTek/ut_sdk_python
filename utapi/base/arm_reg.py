@@ -75,6 +75,7 @@ class ARM_REG:
         self.CAL_FK = [0x53, AXIS * 4, 24, null, null]
         self.IS_JOINT_LIMIT = [0x54, AXIS * 4, 1, null, null]
         self.IS_TCP_LIMIT = [0x55, 24, 1, null, null]
+        self.JOINT_VEL_CURR = [0x56, 0, AXIS * 4, null, null]
 
         # [line id reg] [ret value] [line id reg value] [ret]
         self.UTRC_INT8_NOW = [0x60, 3, 2, 4, 1]

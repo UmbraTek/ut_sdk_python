@@ -1111,6 +1111,32 @@ class _ArmApiBase:
             txdata[i] = pose[i]
         return self.__get_reg_int8_fp32(self.reg.IS_TCP_LIMIT, 1, txdata, 6)
 
+    def get_joint_target_vel(self):
+        """Get the desired angular velocity of all joints
+        The angular target velocity are expressed in radians and returned as a vector of length N.
+        Note that the output might differ from the output of get_joint_actual_vel(),
+        especially during acceleration and heavy loads.
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+            vel(list): The current target joint angular velocity vector in rad
+
+        """
+        return self.__get_reg_fp32(self.reg.JOINT_VEL_CURR, self.__AXIS)
+
+    def get_joint_actual_vel(self):
+        """NOT public in current version
+        Get the actual angular velocity of all joints
+        The angular actual velocity are expressed in radians and returned as a vector of length N.
+        Note that the output might differ from the output of get_joint_target_vel(),
+        especially during acceleration and heavy loads.
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+            vel(list): The actual target joint angular velocity vector in rad
+        """
+        return 0, 0
+
     ############################################################
     #                       Rs485 Api
     ############################################################
