@@ -829,6 +829,53 @@ class AdraApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_adrc_param(i, param)
+    '''
+    def get_vel_filter_param(self, i):
+        u"""Get velocity filter parameters.
+
+        Args:
+            i ([int]): Velocity filter has many parameters, which parameter needs to be get.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            value (float): parameter filter.
+        """
+        return self._get_vel_filter_param(i)
+    
+    def set_vel_filter_param(self, i, param):
+        u"""Set velocity filter parameters.
+
+        Args:
+            i ([int]): Velocity filter has many parameters, which parameter needs to be set.
+            param ([type]): [description].
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+        """
+        return self._set_vel_filter_param(i, param)
+    '''
+
+    def set_vel_output_filter_param(self, param):
+        u"""Set velocity output filter parameters.
+
+        Args:
+            param ([int]): The range is 1-999,
+                the larger the value, the less frequently the speed is updated (the longer the period),
+                the worse the real-time performance, and the smaller the speed fluctuation.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+        """
+        return self._set_vel_filter_param(1, param)
+
+    def get_vel_output_filter_param(self):
+        u"""Get velocity output filter parameters.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+            value (float): parameter filter.
+        """
+        return self._get_vel_filter_param(1)
 
     ############################################################
     #                       Torque Api
@@ -1104,3 +1151,22 @@ class AdraApiBase(_ServoApiBase):
             num (list): Cnumber of write broadcasts received, in ascending order of ID number.
         """
         return self._get_cpostau_current(sid, eid)
+
+    def get_cpvt_current(self, sid, eid):
+        u"""Broadcast mode (one packet) gets multiple actuator current position, velocity,
+        torque, and number of write broadcasts received.
+        At the same time, the number of received broadcast write commands is cleared to zero.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+
+        Returns:
+            ret (list): Function execution result code, refer to appendix for code meaning,
+                        in ascending order of ID number.
+            pos (list): Current position of actuators, in ascending order of ID number.
+            vel (list): Current velocity of actuators, in ascending order of ID number.
+            tau (list): Current torque of actuators, in ascending order of ID number.
+            num (list): Cnumber of write broadcasts received, in ascending order of ID number.
+        """
+        return self._get_cpvt_current(sid, eid)

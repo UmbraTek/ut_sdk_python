@@ -62,6 +62,7 @@ class SERVO_REG:
     VEL_PIDI = [0x46, 0, 4, 4, 0]
     VEL_SMOOTH_CYC = [0x47, 0, 1, 1, 0]
     VEL_ADRC_PARAM = [0x49, 1, 4, 5, 0]
+    VEL_FILTER_PARAM = [0x4A, 1, 4, 5, 0]
 
     TAU_TARGET = [0x50, 0, 4, 4, 0]
     TAU_CURRENT = [0x51, 0, 4, null, null]
@@ -79,5 +80,6 @@ class SERVO_REG:
     CPOSVEL_TARGET = [0x64, null, null, 0, null]  # startId endId (pos+vel)*Axis
     SPOSTAU_CURRENT = [0x68, 0, 8 + 1, null, null]  # Gets the current position and torque of an actuator
     CPOSTAU_CURRENT = [0x69, 2, 8 + 1, null, null]  # startId endId
-
+    SPVT_CURRENT = [0x6A, 2, 1 + 12, null, null]  # startId endId
+    CPVT_CURRENT = [0x6B, 2, 12 + 1, null, null]  # startId endId
 

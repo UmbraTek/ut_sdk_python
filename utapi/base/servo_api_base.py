@@ -397,6 +397,18 @@ class _ServoApiBase:
         ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.VEL_ADRC_PARAM, txdata)
         return ret
 
+    def _get_vel_filter_param(self, i):
+        txdata = bytes([int(i)])
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.VEL_FILTER_PARAM, txdata)
+        p = hex_data.bytes_to_uint32_big(bus_rmsg.data[0:4])
+        return ret, p
+
+    def _set_vel_filter_param(self, i, param):
+        txdata = bytes([int(i)])
+        txdata += hex_data.uint32_to_bytes_big(int(param))
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.W, SERVO_REG.VEL_FILTER_PARAM, txdata)
+        return ret
+
     ############################################################
     #                       Current Api
     ############################################################
@@ -586,3 +598,37 @@ class _ServoApiBase:
 
         return ret, broadcast_num, pos, tau
 
+    def _get_cpvt_current(self, sid, eid):
+        id = self.id
+        num = (eid - sid + 1)
+
+        ret = [0] * num
+        broadcast_num = [0] * num
+        pos = [0] * num
+        vel = [0] * num
+        tau = [0] * num
+
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        self.mutex.acquire()
+        self.connect_to_id(0x55, 0x55)
+        self._send(UTRC_RW.R, SERVO_REG.CPVT_CURRENT, txdata)
+        for i in range(num):
+            ret[i], bus_rmsg = self._pend(UTRC_RW.R, SERVO_REG.CPVT_CURRENT)
+            # if (bus_rmsg.master_id != i + 1):
+            #    ret[i] = UTRC_RX_ERROR.TIMEOUT
+
+            if ret[i] == UTRC_RX_ERROR.TIMEOUT:
+                broadcast_num[i] = 0
+                pos[i] = 0
+                tau[i] = 0
+            else:
+                broadcast_num[i] = hex_data.bytes_to_int8(bus_rmsg.data[0])
+                pos[i] = hex_data.bytes_to_fp32_big(bus_rmsg.data[1:5])
+                vel[i] = hex_data.bytes_to_fp32_big(bus_rmsg.data[5:9])
+                tau[i] = hex_data.bytes_to_fp32_big(bus_rmsg.data[9:13])
+
+        self.connect_to_id(id, id)
+        self.mutex.release()
+
+        return ret, broadcast_num, pos, vel, tau
