@@ -432,8 +432,10 @@ class _ArmApiBase:
     ############################################################
 
     def moveto_cartesian_line(self, mvpose, mvvelo, mvacc, mvtime):
-        """Move to position (linear in tool-space) When using this command, the robot must be at a standstill
-        Take a look at application example Demo04
+        """Move to position (linear in tool-space).
+        When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
+        which means that the speed of the instruction running at the target position is 0.
+        Take a look at application example Demo04.
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
@@ -456,7 +458,7 @@ class _ArmApiBase:
         """Blend circular (in tool-space) and move linear (in tool-space) to position.
         Accelerates to and moves with constant tool speed v.
         The velocity is continuous between multiple position points.
-        Take a look at application example Demo05
+        Take a look at application example Demo05.
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
@@ -507,8 +509,10 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVET_CIRCLE, txdata, 16)
 
     def moveto_cartesian_p2p(self, mvpose, mvvelo, mvacc, mvtime):
-        """"Move to position (linear in joint-space), When using this command, the robot must be at a standstill
-        Take a look at application example
+        """"Move to position (linear in joint-space).
+        When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
+        which means that the speed of the instruction running at the target position is 0.
+        Take a look at application example Demo03.
 
         Args:
             mvpose (list): cartesian position [mm mm mm rad rad rad]
@@ -536,8 +540,10 @@ class _ArmApiBase:
         return 0
 
     def moveto_joint_line(self, mvjoint, mvvelo, mvacc, mvtime):
-        """Move to position (linear in tool-space) When using this command, the robot must be at a standstill
-            Take a look at application example
+        """Move to position (linear in tool-space).
+        When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
+        which means that the speed of the instruction running at the target position is 0.
+        Take a look at application example Demo04.
 
         Args:
             mvjoint (list): target joint positions [rad]
@@ -558,9 +564,9 @@ class _ArmApiBase:
 
     def moveto_joint_lineb(self, mvjoint, mvvelo, mvacc, mvtime, mvradii):
         """Blend circular (in tool-space) and move linear (in tool-space) to position.
-        Accelerates to and moves with constant tool speed v.
+        Accelerates to and moves with constant tool speed mvvelo.
         The velocity is continuous between multiple position points.
-        Take a look at application example
+        Take a look at application example Demo05.
 
         Args:
             mvjoint(list): joint position[rad]
@@ -585,7 +591,7 @@ class _ArmApiBase:
         """"Move to position (circular in tool-space).
         TCP moves on the circular arc segment from current pose, through mvjoint1 to mvjoint2.
         Accelerates to and moves with constant tool speed mvvelo.
-        Take a look at application example
+        Take a look at application example Demo06.
 
         Args:
             mvjoint1 (list): path cartesian position 1 [rad]
@@ -611,8 +617,10 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVEJ_CIRCLE, txdata, self.__AXIS * 2 + 4)
 
     def moveto_joint_p2p(self, mvjoint, mvvelo, mvacc, mvtime):
-        """Move to position(linear in joint - space) When using this command, the robot must be at a standstill
-            Take a look at application example Demo03
+        """Move to position(linear in joint - space).
+        When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
+        which means that the speed of the instruction running at the target position is 0.
+        Take a look at application example Demo03.
 
         Args:
             mvjoint(list): target joint positions[rad]
@@ -631,16 +639,37 @@ class _ArmApiBase:
         txdata[self.__AXIS + 2] = mvtime
         return self.__set_reg_fp32(self.reg.MOVEJ_P2P, txdata, self.__AXIS + 3)
 
-    def moveto_joint_p2pb(self):
-        """NOT public in current version
+    def moveto_joint_p2pb(self, mvjoint, mvvelo, mvacc, mvtime, mvradii):
+        """Move to position(linear in joint - space). The velocity is continuous between multiple position points.
+        At present, the arc transition function of this instruction has not been implemented,
+        that is, the default parameter mvradii is 0,
+        so although the transition speed between multiple instructions is continuous, the acceleration is infinite.
+        Therefore, when using this API at present stage,
+        the target speed should be appropriately reduced according to the use trajectory.
+        Take a look at application example Demo09.
+
+        Args:
+            mvjoint(list): target joint positions[rad]
+            mvvelo(float): joint speed of leading axis[rad / s]
+            mvacc(float): joint acceleration of leading axis[rad / s^2]
+            mvtime(float): NOT used in current version
+            mvradii(float): NOT used in current version
 
         Returns:
             [type]: [description]
         """
-        return 0
+        txdata = [0] * (self.__AXIS + 4)
+        for i in range(self.__AXIS):
+            txdata[i] = mvjoint[i]
+        txdata[self.__AXIS] = mvvelo
+        txdata[self.__AXIS + 1] = mvacc
+        txdata[self.__AXIS + 2] = mvtime
+        txdata[self.__AXIS + 3] = mvradii
+        return self.__set_reg_fp32(self.reg.MOVEJ_P2PB, txdata, self.__AXIS + 4)
 
     def moveto_home_p2p(self, mvvelo, mvacc, mvtime):
-        """Move to position of home(linear in joint - space) When using this command, the robot must be at a standstill
+        """Move to position of home(linear in joint - space).
+        That the speed of the instruction running at the target position is 0.
 
         Args:
             mvvelo(float): joint speed of leading axis[rad / s]
@@ -661,8 +690,8 @@ class _ArmApiBase:
 
     def moveto_joint_servo(self, frames_num, mvjoint, mvtime):
         """Move to position(linear in joint - space) When using this command,
-            And specify the time to execute to the target position
-            Take a look at application example Demo08
+        And specify the time to execute to the target position.
+        Take a look at application example Demo08.
 
         Args:
             frames_num(int32_t): Number of target coordinates, up to three
@@ -689,12 +718,12 @@ class _ArmApiBase:
 
     def moveto_cartesian_servo(self, frames_num, mvpose, mvtime):
         """Move to position(linear in joint - space) When using this command,
-            And specify the time to execute to the target position
-            Take a look at application example Demo08
+        And specify the time to execute to the target position.
+        Take a look at application example Demo08.
 
         Args:
             frames_num(int32_t): Number of target coordinates, up to three
-            mvpose(list): cartesian position [mm mm mm rad rad rad], That's equal to the number of 6 times the number of frames
+            mvpose(list): cartesian position [mm mm mm rad rad rad], That's equal to the number of 6 times the number of frames.
             mvtime(list): Time to move to target[seconds]
 
         Returns:
@@ -909,7 +938,7 @@ class _ArmApiBase:
         Set the sensitivity of collision detection
 
         Args:
-            num(int): 0 - 101, 101 means close collision detection, 0 is the most sensitive, but has the highest error probability, 
+            num(int): 0 - 101, 101 means close collision detection, 0 is the most sensitive, but has the highest error probability,
             and 100 is the least sensitive, but has the lowest error probability.
 
         Returns:

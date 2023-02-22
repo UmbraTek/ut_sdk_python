@@ -51,7 +51,7 @@ class ARM_REG:
         self.MOVEJ_LINEB = [0x36, null, null, (AXIS + 4) * 4, 4]
         self.MOVEJ_CIRCLE = [0x37, null, null, (AXIS * 2 + 4) * 4, 4]
         self.MOVEJ_P2P = [0x38, null, null, (AXIS + 3) * 4, 4]
-        self.MoveJ_P2PB = [0x39, null, null, null, null]
+        self.MOVEJ_P2PB = [0x39, null, null, (AXIS + 4) * 4, 4]
         self.MOVEJ_HOME = [0x3A, null, null, 12, 4]
         self.MOVE_SLEEP = [0x3B, null, null, 4, 4]
         self.MOVEJ_SERVO = [0x3D, null, null, 0x55, 4]
