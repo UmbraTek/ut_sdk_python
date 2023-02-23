@@ -347,6 +347,10 @@ class AdraApiBase(_ServoApiBase):
     def set_motion_mode(self, mode):
         u"""Set the operating mode.
         When the motion mode is set, the actuator is automatically disabled and need to re-enable the motion.
+        It's normally best not to use this API directly, so use these apis instead:
+            1. into_motion_mode_pos()
+            2. into_motion_mode_vel()
+            3. into_motion_mode_tau()
 
         Args:
             mode (int): operating mode of the actuator.
@@ -379,6 +383,9 @@ class AdraApiBase(_ServoApiBase):
 
     def set_motion_enable(self, enable):
         u"""Set motion enable status.
+        It's normally best not to use this API directly, so use these apis instead:
+            1. into_motion_enable()
+            2. into_motion_disable()
 
         Args:
             enable (bool): 0 Disable servo, 1 Enable servo.
@@ -392,7 +399,21 @@ class AdraApiBase(_ServoApiBase):
         return self.set_motion_enable(1)
 
     def into_motion_disable(self):
+        u"""Stops the current motion, and close the enable and brake.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+        """
         return self.set_motion_enable(0)
+
+    def into_motion_stop(self):
+        u"""Stops the current motion, but does not close the enable and brake.
+        It is only valid for position mode and velocity mode.
+
+        Returns:
+            ret (int): Function execution result code, refer to appendix for code meaning.
+        """
+        return self.set_motion_mode(21)
 
     def get_brake_enable(self):
         u"""Get brake enable status.
@@ -829,31 +850,6 @@ class AdraApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning.
         """
         return self._set_vel_adrc_param(i, param)
-    '''
-    def get_vel_filter_param(self, i):
-        u"""Get velocity filter parameters.
-
-        Args:
-            i ([int]): Velocity filter has many parameters, which parameter needs to be get.
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning.
-            value (float): parameter filter.
-        """
-        return self._get_vel_filter_param(i)
-    
-    def set_vel_filter_param(self, i, param):
-        u"""Set velocity filter parameters.
-
-        Args:
-            i ([int]): Velocity filter has many parameters, which parameter needs to be set.
-            param ([type]): [description].
-
-        Returns:
-            ret (int): Function execution result code, refer to appendix for code meaning.
-        """
-        return self._set_vel_filter_param(i, param)
-    '''
 
     def set_vel_output_filter_param(self, param):
         u"""Set velocity output filter parameters.
