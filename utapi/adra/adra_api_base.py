@@ -339,7 +339,7 @@ class AdraApiBase(_ServoApiBase):
             ret (int): Function execution result code, refer to appendix for code meaning.
             mode (int): operating mode of the actuator.
                 1: Position mode
-                2: Speed ​​mode
+                2: Speed mode
                 3: Torque mode
         """
         return self._get_motion_mode()
@@ -355,7 +355,7 @@ class AdraApiBase(_ServoApiBase):
         Args:
             mode (int): operating mode of the actuator.
                 1: Position mode
-                2: Speed ​​mode
+                2: Speed mode
                 3: Torque mode
 
         Returns:
@@ -428,6 +428,9 @@ class AdraApiBase(_ServoApiBase):
         u"""Set the brake enable status, enable the brake separately,
         and operate this register only when the motion is disabled,
         because the brake is automatically opened in the motion enable status.
+        It's normally best not to use this API directly, so use these apis instead:
+            1. into_brake_enable()
+            2. into_brake_disable()
 
         Args:
             enable (bool): 0 Disable brake, 1 Enable brake.
