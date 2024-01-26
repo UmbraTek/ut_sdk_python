@@ -911,7 +911,6 @@ class AdraApiBase(_ServoApiBase):
 
     def get_tau_limit_min(self):
         u"""Get the minimum limit threshold of the torque.
-        (Not released yet, waiting for update)
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning.
@@ -921,7 +920,10 @@ class AdraApiBase(_ServoApiBase):
 
     def set_tau_limit_min(self, tau):
         u"""Set the minimum limit threshold of the torque, all modes are effective.
-        (Not released yet, waiting for update)
+        Trigger alarm condition (any one) :
+            1. The actual torque exceeds the limit value for 3 seconds.
+            2. The actual torque exceeds 2 times the limit value for 1.5 seconds.
+            3. Exceed the actual limit by 3 times, about 10 milliseconds.
 
         Args:
             tau (float): torque [N.m].
@@ -933,7 +935,6 @@ class AdraApiBase(_ServoApiBase):
 
     def get_tau_limit_max(self):
         u"""Get the maximum limit threshold of the torque.
-        (Not released yet, waiting for update)
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning.
@@ -943,7 +944,10 @@ class AdraApiBase(_ServoApiBase):
 
     def set_tau_limit_max(self, tau):
         u"""Set the maximum limit threshold of the torque, all modes are effective.
-        (Not released yet, waiting for update)
+        Trigger alarm condition (any one) :
+            1. The actual torque exceeds the limit value for 3 seconds.
+            2. The actual torque exceeds 2 times the limit value for 1.5 seconds.
+            3. Exceed the actual limit by 3 times, about 10 milliseconds.
 
         Args:
             tau (float): torque [N.m].
@@ -1169,3 +1173,25 @@ class AdraApiBase(_ServoApiBase):
             num (list): Cnumber of write broadcasts received, in ascending order of ID number.
         """
         return self._get_cpvt_current(sid, eid)
+
+    ############################################################
+    #                      Production Api
+    ############################################################
+    def cal_multi(self):
+        u"""Calibrate the multi-turn encoder.
+        Generally, after the battery is disconnected and plugged, it will report the error of
+        15(multi-turn encoder zero is not aligned), or 7(battery voltage is low), or 19(encoder error).
+        At this time, it is necessary to calibrate the zero of the multi-turn encoder.
+        Here are the steps:	
+            1. Call this API.
+            2. Wait 5 seconds.(At this point, you will hear the lock ring)
+            3. If the calibration is successful and there are no other errors,
+            the led light will enter the breathing state, at this time, it can be re-powered.
+            If the led does not breathe, the calibration has failed, or there is some other type of error,
+            and the error code should be read for analysis.
+
+        Returns:
+        ret (list): Function execution result code, refer to appendix for code meaning,
+                    in ascending order of ID number.
+        """
+        return self._cal_multi()

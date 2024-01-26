@@ -45,7 +45,7 @@ if __name__ == '__main__':
     joint1 = [20 / 57.296, -30 / 57.296, 50 / 57.296, -10 / 57.296, 90 / 57.296, 40 / 57.296]
     joint2 = [20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
     joint3 = [-20 / 57.296, -10 / 57.296, 100 / 57.296, 20 / 57.296, 90 / 57.296, -20 / 57.296]
-    ret = ubot.plan_sleep(5)  # This function must be called if the desired speed is continuous
+    ret = ubot.plan_sleep(2)  # This function must be called if the desired speed is continuous
     print("move_sleep    :%d" % (ret))
     ret = ubot.moveto_joint_p2pb(joint3, speed, acc, 0, 0)
     print("moveto_joint_p2pb   :%d" % (ret))
@@ -55,9 +55,15 @@ if __name__ == '__main__':
     print("moveto_joint_p2pb   :%d" % (ret))
     ret = ubot.moveto_joint_p2pb(joint3, speed, acc, 0, 0)
     print("moveto_joint_p2pb   :%d" % (ret))
-    ret = ubot.moveto_joint_p2pb(joint1, speed, acc, 0, 0)
+    ret = ubot.moveto_joint_p2pb(joint1, speed, acc, 0, 50)
     print("moveto_joint_p2pb   :%d" % (ret))
-    ret = ubot.moveto_joint_p2pb(joint2, speed, acc, 0, 0)
+    ret = ubot.moveto_joint_p2pb(joint2, speed, acc, 0, 50)
     print("moveto_joint_p2pb   :%d" % (ret))
-    ret = ubot.moveto_joint_p2pb(joint3, speed, acc, 0, 0)
+    ret = ubot.moveto_joint_p2pb(joint3, speed, acc, 0, 50)
+    print("moveto_joint_p2pb   :%d" % (ret))
+    ret = ubot.moveto_joint_p2pb(joint1, speed, acc, 0, 50)
+    print("moveto_joint_p2pb   :%d" % (ret))
+    ret = ubot.moveto_joint_p2pb(joint2, speed, acc, 0, 50)
+    print("moveto_joint_p2pb   :%d" % (ret))
+    ret = ubot.moveto_joint_p2pb(joint3, speed, acc, 0, 50)
     print("moveto_joint_p2pb   :%d" % (ret))

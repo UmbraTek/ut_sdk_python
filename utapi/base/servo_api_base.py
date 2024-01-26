@@ -632,3 +632,5 @@ class _ServoApiBase:
         self.mutex.release()
 
         return ret, broadcast_num, pos, vel, tau
+def _cal_multi(self):
+        return self.__set_reg_uint8(SERVO_REG.CAL_MULTI, (SERVO_REG.CAL_MULTI[0] & 0x0F) | 0xA0)
