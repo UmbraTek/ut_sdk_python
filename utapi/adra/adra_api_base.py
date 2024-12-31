@@ -1122,6 +1122,20 @@ class AdraApiBase(_ServoApiBase):
             ret (int): meaningless.
         """
         return self._set_cposvel_target(sid, eid, pos, vel)
+    
+    def set_cvel_target(self, sid, eid, vel):
+        u"""Broadcast mode (one packet) sets multiple actuator target speed.
+        Applies to firmware after January 2025.
+
+        Args:
+            sid (int): ID of the first actuator.
+            eid (int): ID of the last actuator.
+            vel (list): Target speed of actuators, in ascending order of ID number.
+
+        Returns:
+            ret (int): meaningless.
+        """
+        return self._set_cvel_target(sid, eid, vel)
 
     def get_spostau_current(self):
         u"""Gets the current position of the actuator, the current torque, and number of write broadcasts received.

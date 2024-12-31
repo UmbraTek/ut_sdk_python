@@ -99,3 +99,4 @@ class ARM_REG:
         self.GPIO_OU = [0x6F, 2, 0x55, " ", " "]
 
         self.FRICTION = [0x70, 2, 16, 2 + 16, 0]
+        self.DH_OFFSET = [0x71, 2, 16, 2 + 16, 0]

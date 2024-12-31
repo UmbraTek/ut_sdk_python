@@ -6,16 +6,17 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from utapi.common import hex_data
-from utapi.base.arm_reg import ARM_REG, RS485_LINE
-from utapi.base.gpio_reg import GPIO_REG
-from utapi.common.utrc import UtrcClient, UtrcType, UTRC_RW, UTRC_RX_ERROR
 import logging
 import threading
 
+from utapi.base.arm_reg import ARM_REG, RS485_LINE
+from utapi.base.gpio_reg import GPIO_REG
+from utapi.common import hex_data
+from utapi.common.utrc import UTRC_RW, UTRC_RX_ERROR, UtrcClient, UtrcType
+
 
 class _ArmApiBase:
-    def __init__(self, socket_fp):
+    def __init__(self, socket_fp, id=0x55):
         self.DB_FLG = "[UbotApi ] "
         self.__is_err = 0
 
@@ -27,7 +28,7 @@ class _ArmApiBase:
         self.tx_data = UtrcType()
         self.tx_data.state = 0x00
         self.tx_data.master_id = 0xAA
-        self.tx_data.slave_id = 0x55
+        self.tx_data.slave_id = id
 
         self.tgpio_id = 1
         self.cgpio_id = 1
@@ -144,7 +145,7 @@ class _ArmApiBase:
     ############################################################
 
     def get_uuid(self):
-        u"""Get the uuid of the arm
+        """Get the uuid of the arm
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -156,7 +157,7 @@ class _ArmApiBase:
         return ret, uuid
 
     def get_sw_version(self):
-        u"""Get the software version
+        """Get the software version
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -167,7 +168,7 @@ class _ArmApiBase:
         return ret, ver_srt
 
     def get_hw_version(self):
-        u"""Get the hardware version
+        """Get the hardware version
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -178,7 +179,7 @@ class _ArmApiBase:
         return ret, ver_srt
 
     def get_axis(self):
-        u"""Get the number of arm axes
+        """Get the number of arm axes
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -189,7 +190,7 @@ class _ArmApiBase:
         return ret, axis
 
     def get_sys_autorun(self):
-        u"""Get the arm automatically starts symbol when it is powered on.
+        """Get the arm automatically starts symbol when it is powered on.
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -200,7 +201,7 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.SYS_AUTORUN, 1)
 
     def set_sys_autorun(self, autorun):
-        u"""Set the arm to start automatically when it is powered on.
+        """Set the arm to start automatically when it is powered on.
 
         Args:
             autorun (int): 0: The arm does not start automatically when it is powered on.
@@ -212,7 +213,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.SYS_AUTORUN, int(autorun), 1)
 
     def shutdown_system(self):
-        u"""Power off the controller
+        """Power off the controller
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -220,7 +221,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.SYS_SHUTDOWN, self.reg.SYS_SHUTDOWN[0], 1)
 
     def reset_err(self):
-        u"""Reset the error state of the device
+        """Reset the error state of the device
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -228,7 +229,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.RESET_ERR, self.reg.RESET_ERR[0], 1)
 
     def reboot_system(self):
-        u"""Restart the system
+        """Restart the system
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -236,7 +237,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.SYS_REBOOT, self.reg.SYS_REBOOT[0], 1)
 
     def erase_parm(self):
-        u"""Restore the parameters to factory settings
+        """Restore the parameters to factory settings
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -244,7 +245,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.ERASE_PARM, self.reg.ERASE_PARM[0], 1)
 
     def saved_parm(self):
-        u"""Save the current parameter settings
+        """Save the current parameter settings
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -256,7 +257,7 @@ class _ArmApiBase:
     ############################################################
 
     def get_motion_mode(self):
-        u"""Get the operating mode of the arm
+        """Get the operating mode of the arm
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -270,7 +271,7 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.MOTION_MDOE, 1)
 
     def set_motion_mode(self, mode):
-        u"""Set the operating mode of the arm.
+        """Set the operating mode of the arm.
         It's normally best not to use this API directly, so use these apis instead:
             1. into_motion_mode_pos()
             2. into_motion_mode_teach()
@@ -291,7 +292,7 @@ class _ArmApiBase:
         return self.set_motion_mode(2)
 
     def get_motion_enable(self):
-        u"""Get the enable state of the arm
+        """Get the enable state of the arm
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -304,7 +305,7 @@ class _ArmApiBase:
         return self.__get_reg_int32(self.reg.MOTION_ENABLE, 1)
 
     def set_motion_enable(self, axis, en):
-        u"""Set the enable state of the arm
+        """Set the enable state of the arm
         It's normally best not to use this API directly, so use these apis instead:
             1. into_motion_enable()
             2. into_motion_disable()
@@ -326,7 +327,7 @@ class _ArmApiBase:
         return self.set_motion_enable(99, 0)
 
     def get_brake_enable(self):
-        u"""Get the enable state of the joint brake
+        """Get the enable state of the joint brake
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -340,7 +341,7 @@ class _ArmApiBase:
         return self.__get_reg_int32(self.reg.BRAKE_ENABLE, 1)
 
     def set_brake_enable(self, axis, en):
-        u"""Only set the enable state of the joint brake
+        """Only set the enable state of the joint brake
         Danger: After opening the brake, the robotic arm will lose its locking force,
         each joint will rotate due to gravity, and each joint of the robotic arm will do free fall.
         Before enabling the brake, it is necessary to ensure that each joint of the robotic arm is externally secured.
@@ -356,7 +357,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.BRAKE_ENABLE, txdata, 2)
 
     def get_error_code(self):
-        u"""Get error code
+        """Get error code
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -365,24 +366,28 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.ERROR_CODE, 2)
 
     def get_servo_msg(self):
-        u"""Get servo status information
+        """Get servo status information
+        When using this interface, please stop the movement of the robot arm and turn off the enable of the robot arm
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
             msg (list): Servo motor communication status and operation error code
                 msg[0:Axis] Servo communication status
-                msg[Axis:2*Axis] Servo error code
+                     0: normal
+                    -3: Joint communication failure
+                    -4: There is an error in the joint, please check the error code
+                msg[Axis:2*Axis] Servo error code. Check the error code table in the ADRA actuator manual
         """
         ret, msg = self.__get_reg_int8(self.reg.SERVO_MSG, self.__AXIS * 2)
         msg_srt = " ".join([str(x) for x in msg])
         return ret, msg_srt
 
     def get_motion_status(self):
-        u"""Get the running status of the arm
-
+        """Get the running status of the arm
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
             state (int): Current running status
+                0: Normal, ready to motion
                 1: Moving
                 2: Sleeping, ready to motion
                 3: Paused
@@ -392,7 +397,7 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.MOTION_STATUS, 1)
 
     def set_motion_status(self, state):
-        u"""Set the running status of the arm
+        """Set the running status of the arm
         It's normally best not to use this API directly, so use these apis instead:
             1. motion_status_into_stop()
             2. motion_status_into_ready()
@@ -419,7 +424,7 @@ class _ArmApiBase:
         self.set_motion_status(3)
 
     def get_cmd_num(self):
-        u"""Get the current number of instruction cache
+        """Get the current number of instruction cache
 
         Returns:
             ret (int): Function execution result code, refer to appendix for code meaning
@@ -427,7 +432,7 @@ class _ArmApiBase:
         return self.__get_reg_int32(self.reg.CMD_NUM, 1)
 
     def set_cmd_num(self, value=0):
-        u"""Clear the current instruction cache
+        """Clear the current instruction cache
 
         Args:
             value (int): NOT used in current version
@@ -442,7 +447,7 @@ class _ArmApiBase:
     ############################################################
 
     def moveto_cartesian_line(self, mvpose, mvvelo, mvacc, mvtime):
-        u"""Move to position (linear in tool-space).
+        """Move to position (linear in tool-space).
         When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
         which means that the speed of the instruction running at the target position is 0.
         Take a look at application example Demo04.
@@ -465,7 +470,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVET_LINE, txdata, 9)
 
     def moveto_cartesian_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
-        u"""Blend circular (in tool-space) and move linear (in tool-space) to position.
+        """Blend circular (in tool-space) and move linear (in tool-space) to position.
         Accelerates to and moves with constant tool speed v.
         The velocity is continuous between multiple position points.
         Take a look at application example Demo05.
@@ -490,7 +495,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVET_LINEB, txdata, 10)
 
     def moveto_cartesian_circle(self, pose1, pose2, mvvelo, mvacc, mvtime, percent):
-        u"""Move to position (circular in tool-space).
+        """Move to position (circular in tool-space).
         TCP moves on the circular arc segment from current pose, through pose1 to pose2.
         Accelerates to and moves with constant tool speed mvvelo.
         Take a look at application example Demo06
@@ -519,7 +524,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVET_CIRCLE, txdata, 16)
 
     def moveto_cartesian_p2p(self, mvpose, mvvelo, mvacc, mvtime):
-        u"""Move to position(linear in joint - space).
+        """Move to position(linear in joint - space).
         When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
         which means that the speed of the instruction running at the target position is 0.
         Take a look at application example Demo03.
@@ -542,7 +547,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVET_P2P, txdata, 9)
 
     def moveto_cartesian_p2pb(self):
-        u"""NOT public in current version
+        """NOT public in current version
 
         Returns:
             [type]: [description]
@@ -550,7 +555,7 @@ class _ArmApiBase:
         return 0
 
     def moveto_joint_line(self, mvjoint, mvvelo, mvacc, mvtime):
-        u"""Move to position(linear in tool - space).
+        """Move to position(linear in tool - space).
         When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
         which means that the speed of the instruction running at the target position is 0.
         Take a look at application example Demo04.
@@ -573,7 +578,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVEJ_LINE, txdata, self.__AXIS + 3)
 
     def moveto_joint_lineb(self, mvjoint, mvvelo, mvacc, mvtime, mvradii):
-        u"""Blend circular ( in tool-space) and move linear ( in tool-space) to position.
+        """Blend circular ( in tool-space) and move linear ( in tool-space) to position.
         Accelerates to and moves with constant tool speed mvvelo.
         The velocity is continuous between multiple position points.
         Take a look at application example Demo05.
@@ -598,7 +603,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVEJ_LINEB, txdata, self.__AXIS + 4)
 
     def moveto_joint_circle(self, mvjoint1, mvjoint2, mvvelo, mvacc, mvtime, percent):
-        u"""Move to position(circular in tool - space).
+        """Move to position(circular in tool - space).
         TCP moves on the circular arc segment from current pose, through mvjoint1 to mvjoint2.
         Accelerates to and moves with constant tool speed mvvelo.
         Take a look at application example Demo06.
@@ -627,7 +632,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVEJ_CIRCLE, txdata, self.__AXIS * 2 + 4)
 
     def moveto_joint_p2p(self, mvjoint, mvvelo, mvacc, mvtime):
-        u"""Move to position(linear in joint - space).
+        """Move to position(linear in joint - space).
         When the arm controller runs this instruction, the speed between multiple instructions is discontinuous,
         which means that the speed of the instruction running at the target position is 0.
         Take a look at application example Demo03.
@@ -650,7 +655,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVEJ_P2P, txdata, self.__AXIS + 3)
 
     def moveto_joint_p2pb(self, mvjoint, mvvelo, mvacc, mvtime, mvradii):
-        u"""Move to position(linear in joint - space). The velocity is continuous between multiple position points.
+        """Move to position(linear in joint - space). The velocity is continuous between multiple position points.
         At present, the arc transition function of this instruction has not been implemented,
         that is, the default parameter mvradii is 0,
         so although the transition speed between multiple instructions is continuous, the acceleration is infinite.
@@ -678,7 +683,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVEJ_P2PB, txdata, self.__AXIS + 4)
 
     def moveto_home_p2p(self, mvvelo, mvacc, mvtime):
-        u"""Move to position of home(linear in joint - space).
+        """Move to position of home(linear in joint - space).
         That the speed of the instruction running at the target position is 0.
 
         Args:
@@ -699,7 +704,7 @@ class _ArmApiBase:
         return self.moveto_joint_servo(frames_num, mvjoint, mvtime)
 
     def moveto_joint_servo(self, frames_num, mvjoint, mvtime):
-        u"""Move to position(linear in joint - space) When using this command,
+        """Move to position(linear in joint - space) When using this command,
         And specify the time to execute to the target position.
         Take a look at application example Demo08.
 
@@ -727,7 +732,7 @@ class _ArmApiBase:
         return ret
 
     def moveto_cartesian_servo(self, frames_num, mvpose, mvtime):
-        u"""Move to position(linear in joint - space) When using this command,
+        """Move to position(linear in joint - space) When using this command,
         And specify the time to execute to the target position.
         Take a look at application example Demo08.
 
@@ -760,7 +765,7 @@ class _ArmApiBase:
         return ret
 
     def move_sleep(self, time):
-        u"""Sleep for an amount of motion time
+        """Sleep for an amount of motion time
 
         Args:
             time(float): sleep time[s]
@@ -771,7 +776,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.MOVE_SLEEP, time, 1)
 
     def plan_sleep(self, time):
-        u"""Sleep for an amount of plan time
+        """Sleep for an amount of plan time
 
         Args:
             time(float): sleep time[s]
@@ -786,7 +791,7 @@ class _ArmApiBase:
     ############################################################
 
     def get_tcp_jerk(self):
-        u"""Get the jerk of the tool - space
+        """Get the jerk of the tool - space
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -796,7 +801,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.TCP_JERK, 1)
 
     def set_tcp_jerk(self, jerk):
-        u"""Set the jerk of the tool - space
+        """Set the jerk of the tool - space
 
         Args:
             jerk(float): jerk[mm / s ^ 3]
@@ -807,7 +812,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.TCP_JERK, jerk, 1)
 
     def get_tcp_maxacc(self):
-        u"""Set the maximum acceleration of the tool - space
+        """Set the maximum acceleration of the tool - space
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -816,7 +821,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.TCP_MAXACC, 1)
 
     def set_tcp_maxacc(self, maxacc):
-        u"""Set the maximum acceleration of the tool - space
+        """Set the maximum acceleration of the tool - space
 
         Args:
             maxacc(float): maximum acceleration[mm / s ^ 2]
@@ -827,7 +832,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.TCP_MAXACC, maxacc, 1)
 
     def get_joint_jerk(self):
-        u"""Get the jerk of the joint - space
+        """Get the jerk of the joint - space
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -836,7 +841,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.JOINT_JERK, 1)
 
     def set_joint_jerk(self, jerk):
-        u"""Set the jerk of the joint - space
+        """Set the jerk of the joint - space
 
         Args:
             jerk(float): jerk[rad / s ^ 3]
@@ -847,7 +852,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.JOINT_JERK, jerk, 1)
 
     def get_joint_maxacc(self):
-        u"""Get the maximum acceleration of the joint - space
+        """Get the maximum acceleration of the joint - space
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -856,7 +861,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.JOINT_MAXACC, 1)
 
     def set_joint_maxacc(self, maxacc):
-        u"""Set the maximum acceleration of the joint - space
+        """Set the maximum acceleration of the joint - space
 
         Args:
             maxacc(float): maximum acceleration[rad / s ^ 2]
@@ -867,7 +872,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.JOINT_MAXACC, maxacc, 1)
 
     def get_tcp_offset(self):
-        u"""Get the coordinate offset of the end tcp tool
+        """Get the coordinate offset of the end tcp tool
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -876,7 +881,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.TCP_OFFSET, 6)
 
     def set_tcp_offset(self, offset):
-        u"""Set the coordinate offset of the end tcp tool
+        """Set the coordinate offset of the end tcp tool
 
         Args:
             offset(list): Offset cartesian position[mm mm mm rad rad rad]
@@ -887,7 +892,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.TCP_OFFSET, offset, 6)
 
     def get_tcp_load(self):
-        u"""Get payload mass and center of gravity
+        """Get payload mass and center of gravity
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -896,7 +901,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.LOAD_PARAM, 4)
 
     def set_tcp_load(self, mass, dir):
-        u"""Set payload mass and center of gravity
+        """Set payload mass and center of gravity
         This function must be called, when the payload weight or weight distribution changes
         when the robot picks up or puts down a heavy workpiece.
         The dir is specified as a vector, [CoGx, CoGy, CoGz], displacement, from the toolmount.
@@ -912,7 +917,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.LOAD_PARAM, txdata, 4)
 
     def get_gravity_dir(self):
-        u"""Get the direction of the acceleration experienced by the robot
+        """Get the direction of the acceleration experienced by the robot
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -921,7 +926,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.GRAVITY_DIR, 3)
 
     def set_gravity_dir(self, value):
-        u"""Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
+        """Set the direction of the acceleration experienced by the robot. When the robot mounting is fixed,
         this corresponds to an accleration of gaway from the earth's centre.
         It is recommended to use this feature with Studio, which provides graphical interface Settings.
 
@@ -934,7 +939,7 @@ class _ArmApiBase:
         return self.__set_reg_fp32(self.reg.GRAVITY_DIR, value, 3)
 
     def get_collis_sens(self):
-        u"""Get the sensitivity of collision detection
+        """Get the sensitivity of collision detection
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -943,7 +948,7 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.COLLIS_SENS, 1)
 
     def set_collis_sens(self, num):
-        u"""Set the sensitivity of collision detection
+        """Set the sensitivity of collision detection
 
         Args:
             num(int): 0 - 101, 101 means close collision detection, 0 is the most sensitive, but has the highest error probability,
@@ -955,7 +960,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.COLLIS_SENS, int(num), 1)
 
     def get_teach_sens(self):
-        u"""Get the sensitivity of freedrive
+        """Get the sensitivity of freedrive
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -964,7 +969,7 @@ class _ArmApiBase:
         return self.__get_reg_int8(self.reg.TEACH_SENS, 1)
 
     def set_teach_sens(self, num):
-        u"""Set the sensitivity of freedrive
+        """Set the sensitivity of freedrive
 
         Args:
             num (int): 90 - 110, sensitivity increases from 90 % to 110 %, and 110 is the highest sensitivity
@@ -975,7 +980,7 @@ class _ArmApiBase:
         return self.__set_reg_int8(self.reg.TEACH_SENS, int(num), 1)
 
     def get_limit_fun(self):
-        u"""Get the function of limit
+        """Get the function of limit
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -984,7 +989,7 @@ class _ArmApiBase:
         return self.__get_reg_int32(self.reg.LIMIT_FUN, 1)
 
     def set_limit_fun(self, fun):
-        u"""Set the function of limit.(High: open, Low: Close)
+        """Set the function of limit.(High: open, Low: Close)
         The Angle limit and geometric collision functions are enabled by default
         and can be turned off or on using this function.
 
@@ -997,7 +1002,7 @@ class _ArmApiBase:
         return self.__set_reg_int32(self.reg.LIMIT_FUN, fun, 1)
 
     def set_limit_angle_enable(self, en):
-        u"""Turn off / on Angle limit detection
+        """Turn off / on Angle limit detection
 
         Args:
             en(int):  0 Turn off Angle limit detection
@@ -1012,7 +1017,7 @@ class _ArmApiBase:
             return self.set_limit_fun(0x00010000)
 
     def set_limit_geometry_enable(self, en):
-        u"""Turn off / on geometry limit detection
+        """Turn off / on geometry limit detection
 
         Args:
             en(int):  0 Turn off geometry limit detection
@@ -1025,15 +1030,82 @@ class _ArmApiBase:
             return self.set_limit_fun(0x00020002)
         else:
             return self.set_limit_fun(0x00020000)
+
+    def get_friction(self, axis):
+        """Get the friction of the joint
+
+        Args:
+            axis([int]): Joint number one to N
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+            fri([list]): [Forward Coulomb, Forward viscous, reverse Coulomb, reverse viscous]
+        """
+        txdata = bytes([self.reg.FRICTION[0]])
+        txdata += bytes([int(axis)])
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.FRICTION, txdata)
+        fri = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
+        return ret, fri
+
+    def set_friction(self, axis, fri):
+        """Set the friction of the joint
+        Use of this interface is not recommended, only for deep collaborative user development
+
+        Args:
+            axis([int]): Joint number one to N
+            fri([list]): [Forward Coulomb, Forward viscous, reverse Coulomb, reverse viscous]
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = bytes([self.reg.FRICTION[0]])
+        txdata += bytes([int(axis)])
+        txdata += hex_data.fp32_to_bytes_big(fri, 4)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.FRICTION, txdata)
+        return ret
+
+    def get_dh_offset(self, axis):
+        """Get the dh offset of the joint
+
+        Args:
+            axis([int]): Joint number one to N
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+            offset([list]): [theta d alpha a]
+        """
+        txdata = bytes([self.reg.DH_OFFSET[0]])
+        txdata += bytes([int(axis)])
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.DH_OFFSET, txdata)
+        offset = hex_data.bytes_to_fp32_big(utrc_rmsg.data, 4)
+        return ret, offset
+
+    def set_dh_offset(self, axis, offset):
+        """Set the dh offset of the joint
+        Use of this interface is not recommended, only for deep collaborative user development
+
+        Args:
+            axis([int]): Joint number one to N
+            offset([list]): [theta d alpha a]
+
+        Returns:
+            ret(int): Function execution result code, refer to appendix for code meaning
+        """
+        txdata = bytes([self.reg.DH_OFFSET[0]])
+        txdata += bytes([int(axis)])
+        txdata += hex_data.fp32_to_bytes_big(offset, 4)
+        ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.DH_OFFSET, txdata)
+        return ret
+
     ############################################################
     #                       State Api
     ############################################################
 
     def get_tcp_target_pos(self):
-        u"""Get the current target tool pose
+        """Get the current target tool pose
         Get the 6d pose representing the tool position and orientation specified in the base frame.
         The calculation of this pose is based on the current target joint positions.
-        The [target position] here refers to the target position of the actuator/servo motor, 
+        The [target position] here refers to the target position of the actuator/servo motor,
         and this [target position] can be approximately equal to the current position of the arm due to the high control cycle.
 
         Returns:
@@ -1044,7 +1116,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.TCP_POS_CURR, 6)
 
     def get_tcp_actual_pos(self):
-        u"""NOT public in current version
+        """NOT public in current version
         Get the current measured tool pose
         Get the 6d pose representing the tool position and orientation specified in the base frame.
         The calculation of this pose is based on the actual robot encoder readings.
@@ -1056,9 +1128,9 @@ class _ArmApiBase:
         return 0, 0
 
     def get_joint_target_pos(self):
-        u"""Get the desired angular position of all joints
+        """Get the desired angular position of all joints
         The angular target positions are expressed in radians and returned as a vector of length N.
-        The [target position] here refers to the target position of the actuator/servo motor, 
+        The [target position] here refers to the target position of the actuator/servo motor,
         and this [target position] can be approximately equal to the current position of the arm due to the high control cycle.
         Note that the output might differ from the output of get_joint_actual_pose(),
         especially during cceleration and heavy loads.
@@ -1071,7 +1143,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.JOINT_POS_CURR, self.__AXIS)
 
     def get_joint_actual_pos(self):
-        u"""NOT public in current version
+        """NOT public in current version
         Get the actual angular positions of all joints
         The angular actual positions are expressed in radians and returned as a vector of length N.
         Note that the output might differ from the output of get target joint positions(),
@@ -1084,7 +1156,7 @@ class _ArmApiBase:
         return 0, 0
 
     def get_ik(self, pose, qnear):
-        u"""Inverse kinematic transformation(tool space -> joint space).
+        """Inverse kinematic transformation(tool space -> joint space).
         qnear, the solution closest to qnear is returned.
         Otherwise, the solution closest to the current joint positions is returned.
 
@@ -1105,7 +1177,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32_fp32(self.reg.CAL_IK, self.__AXIS, txdata, 6 + self.__AXIS)
 
     def get_fk(self, joints):
-        u"""Forward kinematic transformation(joint space -> tool space).
+        """Forward kinematic transformation(joint space -> tool space).
 
         Args:
             joints(list): joint positions[rad]
@@ -1120,7 +1192,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32_fp32(self.reg.CAL_FK, 6, txdata, self.__AXIS)
 
     def is_joint_limit(self, joints):
-        u"""Checks if the given joints is reachable and within the current safety limits of the robot.
+        """Checks if the given joints is reachable and within the current safety limits of the robot.
 
         Args:
             joints(list): joint positions[rad]
@@ -1135,7 +1207,7 @@ class _ArmApiBase:
         return self.__get_reg_int8_fp32(self.reg.IS_JOINT_LIMIT, 1, txdata, self.__AXIS)
 
     def is_tcp_limit(self, pose):
-        u"""Checks if the given pose is reachable and within the current safety limits of the robot.
+        """Checks if the given pose is reachable and within the current safety limits of the robot.
         This check considers joint limits(if the target pose is specified as joint positions), safety planes limits,
         If a solution is found when applying the inverse kinematics to the given target TCP pose,
         this pose is considered reachable.
@@ -1153,9 +1225,9 @@ class _ArmApiBase:
         return self.__get_reg_int8_fp32(self.reg.IS_TCP_LIMIT, 1, txdata, 6)
 
     def get_joint_target_vel(self):
-        u"""Get the desired angular velocity of all joints
+        """Get the desired angular velocity of all joints
         The angular target velocity are expressed in radians and returned as a vector of length N.
-        The [target velocity] here refers to the target velocity of the actuator/servo motor, 
+        The [target velocity] here refers to the target velocity of the actuator/servo motor,
         and this [target velocity] can be approximately equal to the current velocity of the arm due to the high control cycle.
         Note that the output might differ from the output of get_joint_actual_vel(),
         especially during acceleration and heavy loads.
@@ -1168,7 +1240,7 @@ class _ArmApiBase:
         return self.__get_reg_fp32(self.reg.JOINT_VEL_CURR, self.__AXIS)
 
     def get_joint_actual_vel(self):
-        u"""NOT public in current version
+        """NOT public in current version
         Get the actual angular velocity of all joints
         The angular actual velocity are expressed in radians and returned as a vector of length N.
         Note that the output might differ from the output of get_joint_target_vel(),
@@ -1185,7 +1257,7 @@ class _ArmApiBase:
     ############################################################
 
     def get_utrc_int8_now(self, line, id, reg):
-        u"""Read the 8 - bit register of the device through the utrc protocol
+        """Read the 8 - bit register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1214,7 +1286,7 @@ class _ArmApiBase:
             return ret, ret
 
     def set_utrc_int8_now(self, line, id, reg, value):
-        u"""Write the 8 - bit register of the device through the utrc protocol
+        """Write the 8 - bit register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1242,7 +1314,7 @@ class _ArmApiBase:
             return ret
 
     def get_utrc_int32_now(self, line, id, reg):
-        u"""Read the int32 register of the device through the utrc protocol
+        """Read the int32 register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1271,7 +1343,7 @@ class _ArmApiBase:
             return ret, ret
 
     def set_utrc_int32_now(self, line, id, reg, value):
-        u"""Write the int32 register of the device through the utrc protocol
+        """Write the int32 register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1299,7 +1371,7 @@ class _ArmApiBase:
             return ret
 
     def get_utrc_float_now(self, line, id, reg):
-        u"""Read the float register of the device through the utrc protocol
+        """Read the float register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1328,7 +1400,7 @@ class _ArmApiBase:
             return ret, ret
 
     def set_utrc_float_now(self, line, id, reg, value):
-        u"""Write the float register of the device through the utrc protocol
+        """Write the float register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1356,7 +1428,7 @@ class _ArmApiBase:
             return ret
 
     def get_utrc_int8n_now(self, line, id, reg, len):
-        u"""Read the int8s register of the device through the utrc protocol
+        """Read the int8s register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1378,15 +1450,15 @@ class _ArmApiBase:
         self.reg.UTRC_INT8N_NOW[2] = len + 1
 
         ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_INT8N_NOW, txdata)
-        value = utrc_rmsg.data[0:len + 1]
+        value = utrc_rmsg.data[0 : len + 1]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return value[0], value[1:len + 1]
+            return value[0], value[1 : len + 1]
         else:
             return ret, ret
 
     def set_utrc_int8n_now(self, line, id, reg, len, value):
-        u"""Write the int8s register of the device through the utrc protocol
+        """Write the int8s register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1417,7 +1489,7 @@ class _ArmApiBase:
             return ret
 
     def set_utrc_int8_que(self, line, id, reg, value):
-        u"""Write the 8 - bit register of the device through the utrc protocol
+        """Write the 8 - bit register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1444,7 +1516,7 @@ class _ArmApiBase:
             return ret
 
     def set_utrc_int32_que(self, line, id, reg, value):
-        u"""Write the int32 register of the device through the utrc protocol
+        """Write the int32 register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1471,7 +1543,7 @@ class _ArmApiBase:
             return ret
 
     def set_utrc_float_que(self, line, id, reg, value):
-        u"""Write the float register of the device through the utrc protocol
+        """Write the float register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1499,7 +1571,7 @@ class _ArmApiBase:
             return ret
 
     def set_utrc_int8n_que(self, line, id, reg, len, value):
-        u"""Write the 8 - bit register of the device through the utrc protocol
+        """Write the 8 - bit register of the device through the utrc protocol
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1529,7 +1601,7 @@ class _ArmApiBase:
             return ret
 
     def set_pass_rs485_now(self, line, timeout_ms, tx_len, rx_len, tx_data):
-        u"""Send data to rs485 bus and receive data
+        """Send data to rs485 bus and receive data
         Communicate immediately, do not wait for the execution of other instructions in the queue
 
         Args:
@@ -1558,15 +1630,15 @@ class _ArmApiBase:
         self.reg.PASS_RS485_NOW[4] = rx_len + 2
 
         ret, utrc_rmsg = self.__sendpend(UTRC_RW.W, self.reg.PASS_RS485_NOW, txdata)
-        value = utrc_rmsg.data[0:rx_len + 2]
+        value = utrc_rmsg.data[0 : rx_len + 2]
         value[0] = hex_data.bytes_to_int8(value[0])
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return value[0], value[1:rx_len + 2]
+            return value[0], value[1 : rx_len + 2]
         else:
             return ret, ret
 
     def set_pass_rs485_que(self, line, tx_len, tx_data):
-        u"""Send data to rs485 bus
+        """Send data to rs485 bus
         Queue communication, waiting for the completion of the execution of the instructions in the previous queue
 
         Args:
@@ -1595,7 +1667,7 @@ class _ArmApiBase:
             return ret
 
     def get_utrc_u8float_now(self, line, id, reg, num):
-        u"""Read the float list register of the device through the utrc protocol
+        """Read the float list register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1627,7 +1699,7 @@ class _ArmApiBase:
             return ret, ret
 
     def set_utrc_u8float_now(self, line, id, reg, num, value):
-        u"""Write the float list register of the device through the utrc protocol
+        """Write the float list register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1658,7 +1730,7 @@ class _ArmApiBase:
             return ret
 
     def get_utrc_nfloat_now(self, line, id, reg, len):
-        u"""Read the floats register of the device through the utrc protocol
+        """Read the floats register of the device through the utrc protocol
         Communicate immediately, do not wait for the execution of other instructions in the queue
         Protocol details refer to[utrc_communication_protocol]
 
@@ -1682,7 +1754,7 @@ class _ArmApiBase:
         ret, utrc_rmsg = self.__sendpend(UTRC_RW.R, self.reg.UTRC_FP32N_NOW, txdata)
         rx_data = hex_data.bytes_to_fp32_big(utrc_rmsg.data, len + 1)
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
-            return rx_data[0], rx_data[1:len + 1]
+            return rx_data[0], rx_data[1 : len + 1]
         else:
             return ret, ret
 
@@ -1690,7 +1762,7 @@ class _ArmApiBase:
     #                       GPIO Api
     ############################################################
     def __get_gpio_in(self, line, id):
-        u"""Gets the input value for the GPIO module
+        """Gets the input value for the GPIO module
 
         Args:
             line(int): RS485 line
@@ -1717,14 +1789,14 @@ class _ArmApiBase:
         value[2] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[5:9])  # digit
         value[3] = utrc_rmsg.data[9]
         for i in range(value[3]):
-            value[4 + i] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[(10 + i * 4):(14 + i * 4)])  # digit
+            value[4 + i] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[(10 + i * 4) : (14 + i * 4)])  # digit
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value[0], value[1:]
         else:
             return ret, ret
 
     def __get_gpio_ou(self, line, id):
-        u"""Gets the output value of the GPIO module
+        """Gets the output value of the GPIO module
 
         Args:
             line(int): RS485 line
@@ -1751,7 +1823,7 @@ class _ArmApiBase:
         value[2] = hex_data.bytes_to_uint32_big(utrc_rmsg.data[5:9])  # digit
         value[3] = utrc_rmsg.data[9]
         for i in range(value[3]):
-            value[4 + i] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[(10 + i * 4):(14 + i * 4)])  # digit
+            value[4 + i] = hex_data.bytes_to_fp32_big(utrc_rmsg.data[(10 + i * 4) : (14 + i * 4)])  # digit
         if ret == 0 or ret == UTRC_RX_ERROR.STATE:
             return value[0], value[1:]
         else:
@@ -1761,7 +1833,7 @@ class _ArmApiBase:
     #                    End-Tool GPIO Api
     ############################################################
     def get_tgpio_in(self):
-        u"""Gets the input value of the end - tool GPIO module
+        """Gets the input value of the end - tool GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -1774,7 +1846,7 @@ class _ArmApiBase:
         return self.__get_gpio_in(RS485_LINE.TGPIO, self.tgpio_id)
 
     def get_tgpio_out(self):
-        u"""Gets the output value of the end - tool GPIO module
+        """Gets the output value of the end - tool GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -1787,7 +1859,7 @@ class _ArmApiBase:
         return self.__get_gpio_ou(RS485_LINE.TGPIO, self.tgpio_id)
 
     def set_tgpio_digit_out(self, value):
-        u"""Set the end - tool GPIO module to output digital I / O
+        """Set the end - tool GPIO module to output digital I / O
         The higher 16 bits are the I / O to be set, and the lower 16 bits are the value to be set
 
         Args:
@@ -1801,7 +1873,7 @@ class _ArmApiBase:
         return self.set_utrc_int32_now(RS485_LINE.TGPIO, self.tgpio_id, 0x13, int(value))
 
     def get_tgpio_uuid(self):
-        u"""Get the UUID of the end - tool GPIO module
+        """Get the UUID of the end - tool GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -1818,14 +1890,15 @@ class _ArmApiBase:
         return ret, string
 
     def get_tgpio_sw_version(self):
-        u"""Get the software version of the end - tool GPIO module
+        """Get the software version of the end - tool GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
             version(string): Software version, 12 - bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.SW_VERSION[0],
-                                            GPIO_REG.SW_VERSION[2])
+        ret, data = self.get_utrc_int8n_now(
+            RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.SW_VERSION[0], GPIO_REG.SW_VERSION[2]
+        )
         version = data[0:12]
         print("get_tgpio_sw_version: ")
         print(version)
@@ -1834,14 +1907,15 @@ class _ArmApiBase:
         return ret, version
 
     def get_tgpio_hw_version(self):
-        u"""Get the hardware version of the end - tool GPIO module
+        """Get the hardware version of the end - tool GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
             version(string): Hardware version, 12 - bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.HW_VERSION[0],
-                                            GPIO_REG.HW_VERSION[2])
+        ret, data = self.get_utrc_int8n_now(
+            RS485_LINE.TGPIO, self.tgpio_id, GPIO_REG.HW_VERSION[0], GPIO_REG.HW_VERSION[2]
+        )
         version = data[0:12]
         print("get_tgpio_hw_version: ")
         print(version)
@@ -1855,7 +1929,7 @@ class _ArmApiBase:
     #                    Controller GPIO Api
     ############################################################
     def get_cgpio_in(self):
-        u"""Gets the input value of the controller GPIO module
+        """Gets the input value of the controller GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -1868,7 +1942,7 @@ class _ArmApiBase:
         return self.__get_gpio_in(RS485_LINE.CGPIO, self.cgpio_id)
 
     def get_cgpio_out(self):
-        u"""Gets the output value of the controller GPIO module
+        """Gets the output value of the controller GPIO module
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -1881,7 +1955,7 @@ class _ArmApiBase:
         return self.__get_gpio_ou(RS485_LINE.CGPIO, self.cgpio_id)
 
     def set_cgpio_digit_out(self, value):
-        u"""Set the controller GPIO module to output digital I / O
+        """Set the controller GPIO module to output digital I / O
         The higher 16 bits are the I / O to be set, and the lower 16 bits are the value to be set
 
         Args:
@@ -1895,7 +1969,7 @@ class _ArmApiBase:
         return self.set_utrc_int32_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.DIGITOU[0], int(value))
 
     def get_cgpio_uuid(self):
-        u"""Get the UUID of the NTRO Controller
+        """Get the UUID of the NTRO Controller
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
@@ -1912,14 +1986,15 @@ class _ArmApiBase:
         return ret, string
 
     def get_cgpio_sw_version(self):
-        u"""Get the software version of the NTRO Controller
+        """Get the software version of the NTRO Controller
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
             version(string): Software version, 12 - bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.SW_VERSION[0],
-                                            GPIO_REG.SW_VERSION[2])
+        ret, data = self.get_utrc_int8n_now(
+            RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.SW_VERSION[0], GPIO_REG.SW_VERSION[2]
+        )
         version = data[0:12]
         print("get_cgpio_sw_version: ")
         print(version)
@@ -1928,14 +2003,15 @@ class _ArmApiBase:
         return ret, version
 
     def get_cgpio_hw_version(self):
-        u"""Get the hardware version of the NTRO Controller
+        """Get the hardware version of the NTRO Controller
 
         Returns:
             ret(int): Function execution result code, refer to appendix for code meaning
             version(string): Hardware version, 12 - bit string
         """
-        ret, data = self.get_utrc_int8n_now(RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.HW_VERSION[0],
-                                            GPIO_REG.HW_VERSION[2])
+        ret, data = self.get_utrc_int8n_now(
+            RS485_LINE.CGPIO, self.cgpio_id, GPIO_REG.HW_VERSION[0], GPIO_REG.HW_VERSION[2]
+        )
         version = data[0:12]
         print("get_cgpio_hw_version: ")
         print(version)

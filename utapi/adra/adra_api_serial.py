@@ -6,16 +6,15 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from utapi.common.utrc import UtrcType, UtrcClient, UtrcDecode
-from utapi.common.utcc import UtccType, UtccClient, UtccDecode
-from utapi.common.socket_serial import SocketSerial
-
 from utapi.adra.adra_api_base import AdraApiBase
+from utapi.common.socket_serial import SocketSerial
+from utapi.common.utcc import UtccClient, UtccDecode, UtccType
+from utapi.common.utrc import UtrcClient, UtrcDecode, UtrcType
 
 
 class AdraApiSerial(AdraApiBase):
     def __init__(self, port, baud, bus_type=0):
-        u"""AdraApiSerial is an interface class that controls the ADRA actuator through a serial port.
+        """AdraApiSerial is an interface class that controls the ADRA actuator through a serial port.
         USB-to-RS485 or USB-to-CAN module hardware is required to connect the computer and the actuator.
 
         Args:
@@ -67,9 +66,15 @@ class AdraApiSerial(AdraApiBase):
         return self.__is_err
 
     def into_usb_pm(self):
-        u"""If use the USB of the EtherNet to RS485/CAN module to transmit RS485/CAN data,
+        """If use the USB of the EtherNet to RS485/CAN module to transmit RS485/CAN data,
         need to use this function to put the EtherNet to RS485/CAN module into USB transmission mode.
         After the EtherNet to RS485/CAN module is powered on, the transmission mode is TCP/UDP by default.
         Therefore, only need to set the transmission mode once you are powered on.
         """
-        self.socket_fp.write("# INTO-USB-PM\n".encode('utf-8'))
+        self.socket_fp.write("# INTO-USB-PM\n".encode("utf-8"))
+
+    def close(self):
+        try:
+            self.socket_fp.close()
+        except Exception:
+            pass

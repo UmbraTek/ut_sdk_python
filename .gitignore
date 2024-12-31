@@ -7,3 +7,8 @@ dist/
 ut_sdk_python.egg-info/
 install_dir.txt
 build/
+ew_app*.exe
+ew_app*.exe
+ew_app_202*
+ewcb_firmware_app_at32f403_*.bin
+.DS_Store

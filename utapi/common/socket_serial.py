@@ -8,6 +8,7 @@
 # =============================================================================
 import queue
 import threading
+
 import serial
 
 
@@ -39,8 +40,9 @@ class SocketSerial(threading.Thread):
 
     def close(self):
         if self.is_err == 0:
-            self.com.close()
             self.is_err = 1
+            self.com.cancel_read()
+            self.com.close()
 
     def flush(self, master_id=-1, slave_id=-1):
         if self.is_err != 0:
@@ -87,7 +89,7 @@ class SocketSerial(threading.Thread):
         try:
             while self.is_err == 0:
                 rxch = self.com.read(1)
-                if (len(rxch) <= 0):
+                if len(rxch) <= 0:
                     continue
                 if self.rx_decoder == -1:
                     if self.rx_que.full():
@@ -95,7 +97,7 @@ class SocketSerial(threading.Thread):
                     self.rx_que.put(rxch)
                 else:
                     self.rx_decoder.put(rxch, 1, self.rx_que)
-        except Exception as err:
+        except Exception:
             self.close()
             self.is_err = 1
             print(err)

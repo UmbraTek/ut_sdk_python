@@ -6,10 +6,11 @@
 #
 # Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
 # =============================================================================
-from utapi.common.utrc import UTRC_RW, UTRC_RX_ERROR
-from utapi.common import hex_data
-from utapi.base.servo_reg import SERVO_REG
 import threading
+
+from utapi.base.servo_reg import SERVO_REG
+from utapi.common import hex_data
+from utapi.common.utrc import UTRC_RW, UTRC_RX_ERROR
 
 
 class _ServoApiBase:
@@ -144,7 +145,7 @@ class _ServoApiBase:
     def _get_multi_version(self):
         ret, version = self.__get_reg_int32(SERVO_REG.MULTI_VERSION)
         version = "0000000000" + str(version)
-        return ret, version[len(version) - 12:len(version)]
+        return ret, version[len(version) - 12 : len(version)]
 
     def _get_mech_ratio(self):
         return self.__get_reg_fp32(SERVO_REG.MECH_RATIO)
@@ -509,7 +510,7 @@ class _ServoApiBase:
     def _set_cpostau_target(self, sid, eid, pos, tau):
         id = self.id
 
-        num = (eid - sid + 1)
+        num = eid - sid + 1
         postau = [0] * num * 2
         for i in range(num):
             postau[i * 2] = pos[i]
@@ -531,7 +532,7 @@ class _ServoApiBase:
     def _set_cposvel_target(self, sid, eid, pos, vel):
         id = self.id
 
-        num = (eid - sid + 1)
+        num = eid - sid + 1
         posvel = [0] * num * 2
         for i in range(num):
             posvel[i * 2] = pos[i]
@@ -545,6 +546,22 @@ class _ServoApiBase:
         self.mutex.acquire()
         self.connect_to_id(0x55, 0x55)
         self._send(UTRC_RW.W, SERVO_REG.CPOSVEL_TARGET, txdata)
+        self.connect_to_id(id, id)
+        self.mutex.release()
+
+        return 0
+
+    def _set_cvel_target(self, sid, eid, vel):
+        id = self.id
+        self.connect_to_id(0x55, 0x55)
+
+        num = eid - sid + 1
+        txdata = bytes([sid])
+        txdata += bytes([eid])
+        txdata += hex_data.fp32_to_bytes_big(vel, num)
+        SERVO_REG.CVEL_TARGET[3] = 2 + 4 * num
+        self.mutex.acquire()
+        self._send(UTRC_RW.W, SERVO_REG.CVEL_TARGET, txdata)
         self.connect_to_id(id, id)
         self.mutex.release()
 
@@ -567,7 +584,7 @@ class _ServoApiBase:
 
     def _get_cpostau_current(self, sid, eid):
         id = self.id
-        num = (eid - sid + 1)
+        num = eid - sid + 1
 
         ret = [0] * num
         broadcast_num = [0] * num
@@ -600,7 +617,7 @@ class _ServoApiBase:
 
     def _get_cpvt_current(self, sid, eid):
         id = self.id
-        num = (eid - sid + 1)
+        num = eid - sid + 1
 
         ret = [0] * num
         broadcast_num = [0] * num
@@ -632,5 +649,24 @@ class _ServoApiBase:
         self.mutex.release()
 
         return ret, broadcast_num, pos, vel, tau
-def _cal_multi(self):
+
+    ############################################################
+    #                       Developer Api
+    ############################################################
+    def cal_linear_svpwm(self):
+        """
+        The linearity of the encoder was calibrated using svpwm mode
+        """
+        return self.__set_reg_uint8(SERVO_REG.CAL_LINEAR_SVPWM, (SERVO_REG.CAL_LINEAR_SVPWM[0] & 0x0F) | 0xA0)
+
+    def cal_electrical(self):
+        """
+        Calibrate the electrical Angle of the actuator
+        """
+        return self.__set_reg_uint8(SERVO_REG.CAL_ELEC, (SERVO_REG.CAL_ELEC[0] & 0x0F) | 0xA0)
+
+    def _cal_multi(self):
+        """
+        The multi-turn encoder of the calibrated actuator
+        """
         return self.__set_reg_uint8(SERVO_REG.CAL_MULTI, (SERVO_REG.CAL_MULTI[0] & 0x0F) | 0xA0)
