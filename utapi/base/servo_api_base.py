@@ -653,6 +653,16 @@ class _ServoApiBase:
     ############################################################
     #                       Developer Api
     ############################################################
+    def get_cal_status(self):
+        """
+        Get the calibration status, 0: calibration succeeded, 1: calibration in progress, -1: calibration failed
+        """
+        ret, bus_rmsg = self.__sendpend(UTRC_RW.R, SERVO_REG.CAL_STATUS, None)
+        value = [0] * 16
+        value[0] = hex_data.bytes_to_int8(bus_rmsg.data[0])
+        for i in range(15):
+            value[i + 1] = hex_data.bytes_to_fp32_big(bus_rmsg.data[1 + i * 4 : 5 + i * 4])
+        return ret, value
     def cal_linear_svpwm(self):
         """
         The linearity of the encoder was calibrated using svpwm mode

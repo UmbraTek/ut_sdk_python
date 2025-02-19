@@ -84,6 +84,7 @@ class SERVO_REG:
     SPVT_CURRENT = [0x6A, 2, 1 + 12, null, null]  # startId endId
     CPVT_CURRENT = [0x6B, 2, 12 + 1, null, null]  # startId endId
 
+    CAL_STATUS = [0x70, 0, 1 + 15 * 4, null, null]
     CAL_LINEAR_SVPWM = [0x72, null, null, 1, 0]
     CAL_ELEC = [0x74, null, null, 1, 0]
     CAL_MULTI = [0x75, null, null, 1, 0]
